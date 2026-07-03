@@ -7,11 +7,15 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+<<<<<<< HEAD
   const [fieldErrors, setFieldErrors] = useState({});
+=======
+>>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+<<<<<<< HEAD
     setFieldErrors({});
     
     const trimmedEmail = email.trim();
@@ -36,13 +40,19 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
       return;
     }
 
+=======
+>>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
     setLoading(true);
 
     try {
       const response = await fetch('http://127.0.0.1:5001/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+<<<<<<< HEAD
         body: JSON.stringify({ email: trimmedEmail, password })
+=======
+        body: JSON.stringify({ email, password })
+>>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
       });
       const data = await response.json();
 
@@ -64,7 +74,10 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
   const handleFillCredentials = (testEmail, testPassword) => {
     setEmail(testEmail);
     setPassword(testPassword);
+<<<<<<< HEAD
     setFieldErrors({});
+=======
+>>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
   };
 
   return (
@@ -127,16 +140,23 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
                   type="email"
                   required
                   placeholder="name@courtx.lk"
+<<<<<<< HEAD
                   className={`courtx-input courtx-input-with-icon ${fieldErrors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
+=======
+                  className="courtx-input pl-10"
+>>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
+<<<<<<< HEAD
               {fieldErrors.email && (
                 <p className="text-red-600 text-xs font-semibold mt-1.5 animate-fade-in flex items-center gap-1">
                   <span>⚠️</span> {fieldErrors.email}
                 </p>
               )}
+=======
+>>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
             </div>
 
             <div>
@@ -155,7 +175,11 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
                   type={showPassword ? 'text' : 'password'}
                   required
                   placeholder="••••••••"
+<<<<<<< HEAD
                   className={`courtx-input courtx-input-with-icon courtx-input-with-right-icon ${fieldErrors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
+=======
+                  className="courtx-input pl-10 pr-10"
+>>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -167,11 +191,14 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+<<<<<<< HEAD
               {fieldErrors.password && (
                 <p className="text-red-600 text-xs font-semibold mt-1.5 animate-fade-in flex items-center gap-1">
                   <span>⚠️</span> {fieldErrors.password}
                 </p>
               )}
+=======
+>>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
             </div>
 
             <button
