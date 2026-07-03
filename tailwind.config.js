@@ -8,8 +8,8 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        heading: ['Outfit', 'sans-serif'],
-        serif: ['Playfair Display', 'Georgia', 'serif'],
+        heading: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        serif: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       colors: {

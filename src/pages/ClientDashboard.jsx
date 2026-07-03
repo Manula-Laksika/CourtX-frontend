@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Scale, Briefcase, Calendar, Bell, ChevronRight, FileText, 
-  MapPin, Clock, LogOut, CheckCircle, ShieldAlert
+  MapPin, Clock, LogOut, CheckCircle, ShieldAlert, User
 } from 'lucide-react';
 
 export default function ClientDashboard({ user, onLogout }) {
@@ -13,8 +13,18 @@ export default function ClientDashboard({ user, onLogout }) {
 
   const [loading, setLoading] = useState(true);
 
+  // Profile States
+  const [viewMode, setViewMode] = useState('dashboard'); // dashboard, profile
+  const [profileEmail, setProfileEmail] = useState(user.email || '');
+  const [profilePhone, setProfilePhone] = useState('');
+  const [profilePassword, setProfilePassword] = useState('');
+  const [profileSuccess, setProfileSuccess] = useState('');
+  const [profileError, setProfileError] = useState('');
+  const [updatingProfile, setUpdatingProfile] = useState(false);
+
   useEffect(() => {
     fetchInitialData();
+    fetchUserProfile();
   }, []);
 
   const fetchInitialData = async () => {
@@ -74,6 +84,69 @@ export default function ClientDashboard({ user, onLogout }) {
     }
   };
 
+  const fetchUserProfile = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:5001/api/auth/profile', {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('courtx_token')}` }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setProfileEmail(data.email || '');
+        setProfilePhone(data.phone || '');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleProfileUpdate = async (e) => {
+    e.preventDefault();
+    setProfileError('');
+    setProfileSuccess('');
+    
+    const trimmedEmail = profileEmail.trim();
+    if (!trimmedEmail) {
+      setProfileError('Email is required.');
+      return;
+    }
+    if (profilePassword && profilePassword.length < 8) {
+      setProfileError('Password must be at least 8 characters long.');
+      return;
+    }
+    
+    setUpdatingProfile(true);
+    try {
+      const response = await fetch('http://127.0.0.1:5001/api/auth/profile', {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('courtx_token')}`
+        },
+        body: JSON.stringify({
+          email: trimmedEmail,
+          phone: profilePhone.trim() || null,
+          password: profilePassword || null
+        })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update profile.');
+      }
+      
+      setProfileSuccess('Your profile has been updated successfully!');
+      setProfilePassword('');
+      
+      // Update local storage user details if email changed
+      const storedUser = JSON.parse(localStorage.getItem('courtx_user') || '{}');
+      storedUser.email = trimmedEmail;
+      localStorage.setItem('courtx_user', JSON.stringify(storedUser));
+    } catch (err) {
+      setProfileError(err.message);
+    } finally {
+      setUpdatingProfile(false);
+    }
+  };
+
   const getStatusStep = (status) => {
     switch (status) {
       case 'pending': return 1;
@@ -95,34 +168,113 @@ export default function ClientDashboard({ user, onLogout }) {
           <span className="text-lg font-extrabold tracking-widest font-heading">COURTX CLIENT PORTAL</span>
         </div>
         <div className="flex items-center gap-4">
-          <div className="text-xs text-slate-300 hidden sm:block">
-            Logged in as: <strong className="text-white">{user.username}</strong>
-          </div>
-          <button 
-            onClick={onLogout}
-            className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-700 rounded hover:bg-slate-800 text-slate-300 hover:text-white text-xs transition-colors"
-          >
-            <LogOut size={12} />
-            Sign Out
-          </button>
+        <div className="text-right hidden sm:block">
+          <div className="text-xs font-semibold text-slate-400 uppercase">Litigant Portal</div>
+          <div className="text-sm font-bold text-white">{user.username}</div>
         </div>
+        <button 
+          onClick={() => {
+            setViewMode(viewMode === 'dashboard' ? 'profile' : 'dashboard');
+            setProfileSuccess('');
+            setProfileError('');
+          }}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 border border-slate-700 rounded hover:bg-slate-700 text-slate-300 hover:text-white text-xs transition-colors"
+        >
+          <User size={12} />
+          {viewMode === 'dashboard' ? 'Edit Profile' : 'Back to Cases'}
+        </button>
+        <button 
+          onClick={onLogout}
+          className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-700 rounded hover:bg-slate-800 text-slate-300 hover:text-white text-xs transition-colors"
+        >
+          <LogOut size={12} />
+          Sign Out
+        </button>
+      </div>
       </header>
 
       {/* Main content grid */}
-      <main className="flex-1 p-6 max-w-6xl w-full mx-auto space-y-6">
-        
-        {loading ? (
-          <div className="text-center py-20 text-slate-400">Loading your case profile...</div>
-        ) : !activeCase ? (
-          <div className="courtx-card bg-white p-12 text-center max-w-lg mx-auto mt-12">
-            <ShieldAlert size={48} className="mx-auto text-amber-500 mb-4" />
-            <h3 className="text-lg font-bold text-slate-800 font-heading">No Active Case Found</h3>
-            <p className="text-slate-500 text-sm leading-relaxed mt-2">
-              Your account is registered but has not yet been linked to an active court case docket. Please contact your retaining counsel to file your complaint.
-            </p>
+    <main className="flex-1 p-6 max-w-6xl w-full mx-auto space-y-6">
+      
+      {loading ? (
+        <div className="text-center py-20 text-slate-400 animate-pulse">Loading your case profile...</div>
+      ) : viewMode === 'profile' ? (
+        <div className="max-w-md mx-auto courtx-card bg-white p-8 animate-scale-up">
+          <div className="mb-6">
+            <h3 className="text-xl font-bold font-heading text-slate-800">User Profile Settings</h3>
+            <p className="text-slate-500 text-sm mt-1">Review and update your litigant registry account details.</p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          {profileError && <div className="mb-4 p-4 bg-amber-50 border-l-4 border-amber-500 text-amber-800 text-sm rounded">{profileError}</div>}
+          {profileSuccess && <div className="mb-4 p-4 bg-teal-50 border-l-4 border-teal-500 text-teal-800 text-sm rounded">{profileSuccess}</div>}
+
+          <form onSubmit={handleProfileUpdate} className="space-y-4">
+            <div>
+              <label className="courtx-label">Username (Read-Only)</label>
+              <input
+                type="text"
+                disabled
+                className="courtx-input bg-slate-100 text-slate-500 cursor-not-allowed"
+                value={user.username}
+              />
+            </div>
+            <div>
+              <label className="courtx-label">E-mail Address</label>
+              <input
+                type="email"
+                required
+                className="courtx-input"
+                value={profileEmail}
+                onChange={(e) => setProfileEmail(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="courtx-label">Phone Number</label>
+              <input
+                type="text"
+                className="courtx-input"
+                value={profilePhone}
+                onChange={(e) => setProfilePhone(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="courtx-label">New Password (Optional)</label>
+              <input
+                type="password"
+                placeholder="Leave blank to keep current password"
+                className="courtx-input"
+                value={profilePassword}
+                onChange={(e) => setProfilePassword(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="courtx-label">Role</label>
+              <input
+                type="text"
+                disabled
+                className="courtx-input bg-slate-100 text-slate-500 cursor-not-allowed capitalize"
+                value={user.role}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={updatingProfile}
+              className="w-full courtx-btn courtx-btn-primary py-3 hover-glow"
+            >
+              {updatingProfile ? 'Updating Profile...' : 'Save Profile Changes'}
+            </button>
+          </form>
+        </div>
+      ) : !activeCase ? (
+        <div className="courtx-card bg-white p-12 text-center max-w-lg mx-auto mt-12 animate-scale-up">
+          <ShieldAlert size={48} className="mx-auto text-amber-500 mb-4" />
+          <h3 className="text-lg font-bold text-slate-800 font-heading">No Active Case Found</h3>
+          <p className="text-slate-500 text-sm leading-relaxed mt-2">
+            Your account is registered but has not yet been linked to an active court case docket. Please contact your retaining counsel to file your complaint.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
             
             {/* Left 2 columns: Case details and tracker */}
             <div className="lg:col-span-2 space-y-6">

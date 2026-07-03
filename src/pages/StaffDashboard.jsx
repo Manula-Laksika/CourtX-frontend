@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Scale, Briefcase, Calendar as CalendarIcon, UserCheck, Search, 
   BarChart3, Check, X, Plus, AlertCircle, FileText, Calendar, Compass, 
-  Clock, ShieldAlert, CheckSquare, Layers, LogOut
+  Clock, ShieldAlert, CheckSquare, Layers, LogOut, User
 } from 'lucide-react';
 import Modal from '../components/Modal';
 
@@ -30,11 +30,23 @@ export default function StaffDashboard({ user, onLogout }) {
   const [selectedCaseReview, setSelectedCaseReview] = useState(null);
   const [caseReviewDetails, setCaseReviewDetails] = useState(null);
 
+  // New Directory & Profile states
+  const [usersList, setUsersList] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [profileEmail, setProfileEmail] = useState(user.email || '');
+  const [profilePhone, setProfilePhone] = useState('');
+  const [profilePassword, setProfilePassword] = useState('');
+  const [profileSuccess, setProfileSuccess] = useState('');
+  const [profileError, setProfileError] = useState('');
+  const [updatingProfile, setUpdatingProfile] = useState(false);
+
   useEffect(() => {
     fetchCases();
     fetchHearings();
     fetchPendingLawyers();
     fetchAnalytics();
+    fetchUsers();
+    fetchUserProfile();
   }, []);
 
   const fetchCases = async () => {
@@ -70,6 +82,85 @@ export default function StaffDashboard({ user, onLogout }) {
       if (response.ok) setPendingLawyers(data);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const fetchUsers = async () => {
+    setLoadingUsers(true);
+    try {
+      const response = await fetch('http://127.0.0.1:5001/api/users', {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('courtx_token')}` }
+      });
+      const data = await response.json();
+      if (response.ok) setUsersList(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:5001/api/auth/profile', {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('courtx_token')}` }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setProfileEmail(data.email || '');
+        setProfilePhone(data.phone || '');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleProfileUpdate = async (e) => {
+    e.preventDefault();
+    setProfileError('');
+    setProfileSuccess('');
+    
+    const trimmedEmail = profileEmail.trim();
+    if (!trimmedEmail) {
+      setProfileError('Email is required.');
+      return;
+    }
+    if (profilePassword && profilePassword.length < 8) {
+      setProfileError('Password must be at least 8 characters long.');
+      return;
+    }
+    
+    setUpdatingProfile(true);
+    try {
+      const response = await fetch('http://127.0.0.1:5001/api/auth/profile', {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('courtx_token')}`
+        },
+        body: JSON.stringify({
+          email: trimmedEmail,
+          phone: profilePhone.trim() || null,
+          password: profilePassword || null
+        })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update profile.');
+      }
+      
+      setProfileSuccess('Your profile has been updated successfully!');
+      setProfilePassword('');
+      fetchUsers(); // Refresh the registry directory
+      
+      // Update local storage user details if email changed
+      const storedUser = JSON.parse(localStorage.getItem('courtx_user') || '{}');
+      storedUser.email = trimmedEmail;
+      localStorage.setItem('courtx_user', JSON.stringify(storedUser));
+    } catch (err) {
+      setProfileError(err.message);
+    } finally {
+      setUpdatingProfile(false);
     }
   };
 
@@ -286,6 +377,20 @@ export default function StaffDashboard({ user, onLogout }) {
             >
               <BarChart3 size={18} />
               Analytics & Reports
+            </button>
+            <button
+              onClick={() => setActiveTab('directory')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded transition-all text-left text-sm font-medium ${activeTab === 'directory' ? 'bg-teal-700 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
+            >
+              <Compass size={18} />
+              Registry Directory
+            </button>
+            <button
+              onClick={() => setActiveTab('profile_settings')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded transition-all text-left text-sm font-medium ${activeTab === 'profile_settings' ? 'bg-teal-700 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
+            >
+              <User size={18} className="text-teal-400" />
+              Profile Settings
             </button>
           </nav>
         </div>
@@ -637,7 +742,7 @@ export default function StaffDashboard({ user, onLogout }) {
                     </span>
                     <input
                       type="text"
-                      className="courtx-input pl-10"
+                      className="courtx-input courtx-input-with-icon"
                       placeholder="Search by Docket No, Title, Litigant, or Attorney Name..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
@@ -760,6 +865,133 @@ export default function StaffDashboard({ user, onLogout }) {
               ) : (
                 <div className="text-center py-12 text-slate-400">Loading system metrics report...</div>
               )}
+            </div>
+          )}
+
+          {/* TAB 7: REGISTRY DIRECTORY */}
+          {activeTab === 'directory' && (
+            <div className="space-y-6 animate-slide-in-right">
+              <div className="courtx-card bg-white p-6">
+                <h3 className="text-xl font-bold font-heading text-slate-800">Registry User Directory</h3>
+                <p className="text-slate-500 text-sm mt-1">Review active and approved lawyers, court clerks, administrators, and litigant profiles.</p>
+              </div>
+
+              <div className="courtx-card bg-white p-6">
+                {loadingUsers ? (
+                  <div className="text-center py-12 text-slate-400">Loading directory records...</div>
+                ) : usersList.length === 0 ? (
+                  <div className="text-center py-12 text-slate-400">No active users in registry.</div>
+                ) : (
+                  <div className="courtx-table-container">
+                    <table className="courtx-table">
+                      <thead>
+                        <tr>
+                          <th>Username</th>
+                          <th>E-mail</th>
+                          <th>Role</th>
+                          <th>Phone</th>
+                          <th>Credential / Bar No.</th>
+                          <th>Created At</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {usersList.map(u => (
+                          <tr key={u.id} className="hover-card-rise">
+                            <td className="font-bold text-slate-800 flex items-center gap-2">
+                              <span className={`w-2.5 h-2.5 rounded-full ${u.is_approved ? 'bg-teal-500' : 'bg-amber-500'}`} title={u.is_approved ? 'Approved' : 'Pending'}></span>
+                              {u.username}
+                            </td>
+                            <td>{u.email}</td>
+                            <td>
+                              <span className={`courtx-badge ${
+                                u.role === 'admin' ? 'bg-red-50 text-red-600 border border-red-200' :
+                                u.role === 'court_staff' ? 'bg-teal-50 text-teal-600 border border-teal-200' :
+                                u.role === 'lawyer' ? 'bg-amber-50 text-amber-600 border border-amber-200' :
+                                'bg-slate-50 text-slate-600 border border-slate-200'
+                              }`}>
+                                {u.role.replaceAll('_', ' ')}
+                              </span>
+                            </td>
+                            <td>{u.phone || 'N/A'}</td>
+                            <td className="font-mono text-xs">{u.bar_number || 'N/A'}</td>
+                            <td className="text-xs text-slate-400">{u.created_at ? u.created_at.slice(0, 10) : 'N/A'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 8: PROFILE SETTINGS */}
+          {activeTab === 'profile_settings' && (
+            <div className="max-w-md mx-auto courtx-card bg-white p-8 animate-scale-up">
+              <div className="mb-6">
+                <h3 className="text-xl font-bold font-heading text-slate-800">User Profile Settings</h3>
+                <p className="text-slate-500 text-sm mt-1">Review and update your registry account information.</p>
+              </div>
+
+              {profileError && <div className="mb-4 p-4 bg-amber-50 border-l-4 border-amber-500 text-amber-800 text-sm rounded">{profileError}</div>}
+              {profileSuccess && <div className="mb-4 p-4 bg-teal-50 border-l-4 border-teal-500 text-teal-800 text-sm rounded">{profileSuccess}</div>}
+
+              <form onSubmit={handleProfileUpdate} className="space-y-4">
+                <div>
+                  <label className="courtx-label">Username (Read-Only)</label>
+                  <input
+                    type="text"
+                    disabled
+                    className="courtx-input bg-slate-100 text-slate-500 cursor-not-allowed"
+                    value={user.username}
+                  />
+                </div>
+                <div>
+                  <label className="courtx-label">E-mail Address</label>
+                  <input
+                    type="email"
+                    required
+                    className="courtx-input"
+                    value={profileEmail}
+                    onChange={(e) => setProfileEmail(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="courtx-label">Phone Number</label>
+                  <input
+                    type="text"
+                    className="courtx-input"
+                    value={profilePhone}
+                    onChange={(e) => setProfilePhone(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="courtx-label">New Password (Optional)</label>
+                  <input
+                    type="password"
+                    placeholder="Leave blank to keep current password"
+                    className="courtx-input"
+                    value={profilePassword}
+                    onChange={(e) => setProfilePassword(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="courtx-label">Role</label>
+                  <input
+                    type="text"
+                    disabled
+                    className="courtx-input bg-slate-100 text-slate-500 cursor-not-allowed capitalize"
+                    value={user.role}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={updatingProfile}
+                  className="w-full courtx-btn courtx-btn-primary py-3 hover-glow"
+                >
+                  {updatingProfile ? 'Updating Profile...' : 'Save Profile Changes'}
+                </button>
+              </form>
             </div>
           )}
 
