@@ -5,6 +5,7 @@ import {
   Search, ShieldAlert, Sparkles, User, UserCheck, RefreshCw, Layers
 } from 'lucide-react';
 import Modal from '../components/Modal';
+import ReactMarkdown from 'react-markdown';
 
 export default function LawyerDashboard({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('overview'); // overview, file_case, my_cases, calendar, ai_assistant
