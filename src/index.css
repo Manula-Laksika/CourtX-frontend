@@ -123,7 +123,6 @@ h1, h2, h3, h4, h5, h6 {
   outline: none;
 }
 
-<<<<<<< HEAD
 .courtx-input-with-icon {
   padding-left: 2.75rem !important;
 }
@@ -131,9 +130,6 @@ h1, h2, h3, h4, h5, h6 {
 .courtx-input-with-right-icon {
   padding-right: 2.75rem !important;
 }
-
-=======
->>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
 .courtx-input:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);

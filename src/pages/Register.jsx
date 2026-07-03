@@ -13,16 +13,12 @@ export default function Register({ onNavigateToLogin }) {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-<<<<<<< HEAD
   const [fieldErrors, setFieldErrors] = useState({});
-=======
->>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
-<<<<<<< HEAD
     setFieldErrors({});
 
     const trimmedUsername = username.trim();
@@ -86,8 +82,6 @@ export default function Register({ onNavigateToLogin }) {
       return;
     }
 
-=======
->>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
     setLoading(true);
 
     try {
@@ -95,19 +89,11 @@ export default function Register({ onNavigateToLogin }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-<<<<<<< HEAD
           username: trimmedUsername,
           email: trimmedEmail,
           phone: trimmedPhone || null,
           password,
           barNumber: trimmedBarNumber.toUpperCase(), // Normalize to uppercase
-=======
-          username,
-          email,
-          phone,
-          password,
-          barNumber,
->>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
           regDate
         })
       });
@@ -207,23 +193,16 @@ export default function Register({ onNavigateToLogin }) {
                     type="text"
                     required
                     placeholder="e.g. j_saman"
-<<<<<<< HEAD
                     className={`courtx-input courtx-input-with-icon ${fieldErrors.username ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
-=======
-                    className="courtx-input pl-10"
->>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                   />
                 </div>
-<<<<<<< HEAD
                 {fieldErrors.username && (
                   <p className="text-red-600 text-xs font-semibold mt-1.5 animate-fade-in flex items-center gap-1">
                     <span>⚠️</span> {fieldErrors.username}
                   </p>
                 )}
-=======
->>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
               </div>
 
               <div>
@@ -237,23 +216,16 @@ export default function Register({ onNavigateToLogin }) {
                     type="email"
                     required
                     placeholder="saman@lawfirm.lk"
-<<<<<<< HEAD
                     className={`courtx-input courtx-input-with-icon ${fieldErrors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
-=======
-                    className="courtx-input pl-10"
->>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
-<<<<<<< HEAD
                 {fieldErrors.email && (
                   <p className="text-red-600 text-xs font-semibold mt-1.5 animate-fade-in flex items-center gap-1">
                     <span>⚠️</span> {fieldErrors.email}
                   </p>
                 )}
-=======
->>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
               </div>
             </div>
 
@@ -269,23 +241,16 @@ export default function Register({ onNavigateToLogin }) {
                     type="text"
                     required
                     placeholder="BAR/YYYY/XXXX"
-<<<<<<< HEAD
                     className={`courtx-input courtx-input-with-icon ${fieldErrors.barNumber ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
-=======
-                    className="courtx-input pl-10"
->>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
                     value={barNumber}
                     onChange={(e) => setBarNumber(e.target.value)}
                   />
                 </div>
-<<<<<<< HEAD
                 {fieldErrors.barNumber && (
                   <p className="text-red-600 text-xs font-semibold mt-1.5 animate-fade-in flex items-center gap-1">
                     <span>⚠️</span> {fieldErrors.barNumber}
                   </p>
                 )}
-=======
->>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
               </div>
 
               <div>
@@ -298,23 +263,16 @@ export default function Register({ onNavigateToLogin }) {
                     id="regDate"
                     type="date"
                     required
-<<<<<<< HEAD
                     className={`courtx-input courtx-input-with-icon ${fieldErrors.regDate ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
-=======
-                    className="courtx-input pl-10"
->>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
                     value={regDate}
                     onChange={(e) => setRegDate(e.target.value)}
                   />
                 </div>
-<<<<<<< HEAD
                 {fieldErrors.regDate && (
                   <p className="text-red-600 text-xs font-semibold mt-1.5 animate-fade-in flex items-center gap-1">
                     <span>⚠️</span> {fieldErrors.regDate}
                   </p>
                 )}
-=======
->>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
               </div>
             </div>
 
@@ -329,23 +287,16 @@ export default function Register({ onNavigateToLogin }) {
                     id="phone"
                     type="tel"
                     placeholder="+94 77 123 4567"
-<<<<<<< HEAD
                     className={`courtx-input courtx-input-with-icon ${fieldErrors.phone ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
-=======
-                    className="courtx-input pl-10"
->>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                   />
                 </div>
-<<<<<<< HEAD
                 {fieldErrors.phone && (
                   <p className="text-red-600 text-xs font-semibold mt-1.5 animate-fade-in flex items-center gap-1">
                     <span>⚠️</span> {fieldErrors.phone}
                   </p>
                 )}
-=======
->>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
               </div>
 
               <div>
@@ -359,11 +310,7 @@ export default function Register({ onNavigateToLogin }) {
                     type={showPassword ? 'text' : 'password'}
                     required
                     placeholder="Create Password (min. 8 chars)"
-<<<<<<< HEAD
                     className={`courtx-input courtx-input-with-icon courtx-input-with-right-icon ${fieldErrors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
-=======
-                    className="courtx-input pl-10 pr-10"
->>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
@@ -375,14 +322,11 @@ export default function Register({ onNavigateToLogin }) {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-<<<<<<< HEAD
                 {fieldErrors.password && (
                   <p className="text-red-600 text-xs font-semibold mt-1.5 animate-fade-in flex items-center gap-1">
                     <span>⚠️</span> {fieldErrors.password}
                   </p>
                 )}
-=======
->>>>>>> 3bf0ef0d1f395c6b790ee668f4d4736a2198c895
               </div>
             </div>
 
