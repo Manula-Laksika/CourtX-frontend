@@ -5,6 +5,7 @@ import {
   Search, ShieldAlert, Sparkles, User, UserCheck, RefreshCw, Layers
 } from 'lucide-react';
 import Modal from '../components/Modal';
+import ReactMarkdown from 'react-markdown';
 
 export default function LawyerDashboard({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('overview'); // overview, file_case, my_cases, calendar, ai_assistant
@@ -40,6 +41,14 @@ export default function LawyerDashboard({ user, onLogout }) {
   const [selectedSourceText, setSelectedSourceText] = useState('');
   const chatEndRef = useRef(null);
 
+  // Profile update states
+  const [profileEmail, setProfileEmail] = useState(user.email || '');
+  const [profilePhone, setProfilePhone] = useState('');
+  const [profilePassword, setProfilePassword] = useState('');
+  const [profileSuccess, setProfileSuccess] = useState('');
+  const [profileError, setProfileError] = useState('');
+  const [updatingProfile, setUpdatingProfile] = useState(false);
+
   // Suggested questions
   const suggestedQuestions = [
     "Can I file for divorce due to malicious desertion?",
@@ -54,6 +63,7 @@ export default function LawyerDashboard({ user, onLogout }) {
     fetchHearings();
     fetchNotifications();
     fetchConversations();
+    fetchUserProfile();
   }, []);
 
   // Scroll to bottom of chat when messages change
@@ -73,6 +83,69 @@ export default function LawyerDashboard({ user, onLogout }) {
       console.error(err);
     } finally {
       setLoadingCases(false);
+    }
+  };
+
+  const fetchUserProfile = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:5001/api/auth/profile', {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('courtx_token')}` }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setProfileEmail(data.email || '');
+        setProfilePhone(data.phone || '');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleProfileUpdate = async (e) => {
+    e.preventDefault();
+    setProfileError('');
+    setProfileSuccess('');
+    
+    const trimmedEmail = profileEmail.trim();
+    if (!trimmedEmail) {
+      setProfileError('Email is required.');
+      return;
+    }
+    if (profilePassword && profilePassword.length < 8) {
+      setProfileError('Password must be at least 8 characters long.');
+      return;
+    }
+    
+    setUpdatingProfile(true);
+    try {
+      const response = await fetch('http://127.0.0.1:5001/api/auth/profile', {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('courtx_token')}`
+        },
+        body: JSON.stringify({
+          email: trimmedEmail,
+          phone: profilePhone.trim() || null,
+          password: profilePassword || null
+        })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update profile.');
+      }
+      
+      setProfileSuccess('Your profile has been updated successfully!');
+      setProfilePassword('');
+      
+      // Update local storage user details if email changed
+      const storedUser = JSON.parse(localStorage.getItem('courtx_user') || '{}');
+      storedUser.email = trimmedEmail;
+      localStorage.setItem('courtx_user', JSON.stringify(storedUser));
+    } catch (err) {
+      setProfileError(err.message);
+    } finally {
+      setUpdatingProfile(false);
     }
   };
 
@@ -463,6 +536,13 @@ export default function LawyerDashboard({ user, onLogout }) {
             >
               <MessageSquare size={18} className="text-teal-400" />
               AI Legal Assistant
+            </button>
+            <button
+              onClick={() => setActiveTab('profile_settings')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded transition-all text-left text-sm font-medium ${activeTab === 'profile_settings' ? 'bg-teal-700 text-white font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
+            >
+              <User size={18} className="text-teal-400" />
+              Profile Settings
             </button>
           </nav>
         </div>
@@ -1042,6 +1122,87 @@ export default function LawyerDashboard({ user, onLogout }) {
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* TAB 6: PROFILE SETTINGS */}
+          {activeTab === 'profile_settings' && (
+            <div className="max-w-md mx-auto courtx-card bg-white p-8 animate-scale-up">
+              <div className="mb-6">
+                <h3 className="text-xl font-bold font-heading text-slate-800">User Profile Settings</h3>
+                <p className="text-slate-500 text-sm mt-1">Review and update your registry account information.</p>
+              </div>
+
+              {profileError && <div className="mb-4 p-4 bg-amber-50 border-l-4 border-amber-500 text-amber-800 text-sm rounded">{profileError}</div>}
+              {profileSuccess && <div className="mb-4 p-4 bg-teal-50 border-l-4 border-teal-500 text-teal-800 text-sm rounded">{profileSuccess}</div>}
+
+              <form onSubmit={handleProfileUpdate} className="space-y-4">
+                <div>
+                  <label className="courtx-label">Username (Read-Only)</label>
+                  <input
+                    type="text"
+                    disabled
+                    className="courtx-input bg-slate-100 text-slate-500 cursor-not-allowed"
+                    value={user.username}
+                  />
+                </div>
+                <div>
+                  <label className="courtx-label">E-mail Address</label>
+                  <input
+                    type="email"
+                    required
+                    className="courtx-input"
+                    value={profileEmail}
+                    onChange={(e) => setProfileEmail(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="courtx-label">Phone Number</label>
+                  <input
+                    type="text"
+                    className="courtx-input"
+                    value={profilePhone}
+                    onChange={(e) => setProfilePhone(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="courtx-label">New Password (Optional)</label>
+                  <input
+                    type="password"
+                    placeholder="Leave blank to keep current password"
+                    className="courtx-input"
+                    value={profilePassword}
+                    onChange={(e) => setProfilePassword(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="courtx-label">Role</label>
+                  <input
+                    type="text"
+                    disabled
+                    className="courtx-input bg-slate-100 text-slate-500 cursor-not-allowed capitalize"
+                    value={user.role}
+                  />
+                </div>
+                {user.barNumber && (
+                  <div>
+                    <label className="courtx-label">Bar Council Number</label>
+                    <input
+                      type="text"
+                      disabled
+                      className="courtx-input bg-slate-100 text-slate-500 cursor-not-allowed"
+                      value={user.barNumber}
+                    />
+                  </div>
+                )}
+                <button
+                  type="submit"
+                  disabled={updatingProfile}
+                  className="w-full courtx-btn courtx-btn-primary py-3 hover-glow"
+                >
+                  {updatingProfile ? 'Updating Profile...' : 'Save Profile Changes'}
+                </button>
+              </form>
             </div>
           )}
 

@@ -38,7 +38,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FDFBF7', color: '#0f766e', fontFamily: 'Outfit, sans-serif', fontWeight: '700', fontSize: '1.125rem', letterSpacing: '0.02em' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FDFBF7', color: '#0f766e', fontFamily: 'Inter, sans-serif', fontWeight: '700', fontSize: '1.125rem', letterSpacing: '0.02em' }}>
         <span className="animate-pulse">CourtX Registry Loading...</span>
       </div>
     );

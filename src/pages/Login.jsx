@@ -7,17 +7,42 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setFieldErrors({});
+    
+    const trimmedEmail = email.trim();
+    const newErrors = {};
+
+    // Client-side Validation Checks
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!trimmedEmail) {
+      newErrors.email = 'E-mail address is required.';
+    } else if (!emailRegex.test(trimmedEmail)) {
+      newErrors.email = 'Please enter a valid e-mail address format (e.g. name@courtx.lk).';
+    }
+
+    if (!password) {
+      newErrors.password = 'Password is required.';
+    } else if (password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters long.';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setFieldErrors(newErrors);
+      return;
+    }
+
     setLoading(true);
 
     try {
       const response = await fetch('http://127.0.0.1:5001/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email: trimmedEmail, password })
       });
       const data = await response.json();
 
@@ -39,6 +64,7 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
   const handleFillCredentials = (testEmail, testPassword) => {
     setEmail(testEmail);
     setPassword(testPassword);
+    setFieldErrors({});
   };
 
   return (
@@ -101,11 +127,16 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
                   type="email"
                   required
                   placeholder="name@courtx.lk"
-                  className="courtx-input pl-10"
+                  className={`courtx-input courtx-input-with-icon ${fieldErrors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
+              {fieldErrors.email && (
+                <p className="text-red-600 text-xs font-semibold mt-1.5 animate-fade-in flex items-center gap-1">
+                  <span>⚠️</span> {fieldErrors.email}
+                </p>
+              )}
             </div>
 
             <div>
@@ -124,7 +155,7 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
                   type={showPassword ? 'text' : 'password'}
                   required
                   placeholder="••••••••"
-                  className="courtx-input pl-10 pr-10"
+                  className={`courtx-input courtx-input-with-icon courtx-input-with-right-icon ${fieldErrors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -136,6 +167,11 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+              {fieldErrors.password && (
+                <p className="text-red-600 text-xs font-semibold mt-1.5 animate-fade-in flex items-center gap-1">
+                  <span>⚠️</span> {fieldErrors.password}
+                </p>
+              )}
             </div>
 
             <button

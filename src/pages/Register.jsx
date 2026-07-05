@@ -13,11 +13,75 @@ export default function Register({ onNavigateToLogin }) {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setFieldErrors({});
+
+    const trimmedUsername = username.trim();
+    const trimmedEmail = email.trim();
+    const trimmedBarNumber = barNumber.trim();
+    const trimmedPhone = phone.trim();
+    const newErrors = {};
+
+    // 1. Username validation
+    const usernameRegex = /^[a-zA-Z0-9_]{3,}$/;
+    if (!trimmedUsername) {
+      newErrors.username = 'Username is required.';
+    } else if (!usernameRegex.test(trimmedUsername)) {
+      newErrors.username = 'Username must be at least 3 characters and contain only letters, numbers, or underscores.';
+    }
+
+    // 2. Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!trimmedEmail) {
+      newErrors.email = 'E-mail address is required.';
+    } else if (!emailRegex.test(trimmedEmail)) {
+      newErrors.email = 'Please enter a valid e-mail address.';
+    }
+
+    // 3. Bar Council Number validation (Format: BAR/YYYY/XXXX)
+    const barRegex = /^BAR\/\d{4}\/\d{3,5}$/i;
+    if (!trimmedBarNumber) {
+      newErrors.barNumber = 'Bar Council Number is required.';
+    } else if (!barRegex.test(trimmedBarNumber)) {
+      newErrors.barNumber = 'Must match registry format (e.g. BAR/2020/489).';
+    }
+
+    // 4. Bar Registration Date validation
+    if (!regDate) {
+      newErrors.regDate = 'Bar Registration Date is required.';
+    } else {
+      const selectedDate = new Date(regDate);
+      const today = new Date();
+      if (selectedDate > today) {
+        newErrors.regDate = 'Registration date cannot be in the future.';
+      }
+    }
+
+    // 5. Phone Number validation (Sri Lanka format)
+    const slPhoneRegex = /^(?:\+94|0)?7[0-9]{8}$/;
+    if (trimmedPhone && !slPhoneRegex.test(trimmedPhone)) {
+      newErrors.phone = 'Please enter a valid Sri Lankan mobile number (e.g. 0771234567).';
+    }
+
+    // 6. Password strength validation
+    if (!password) {
+      newErrors.password = 'Password is required.';
+    } else if (password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters long.';
+    } else if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+      newErrors.password = 'Password must contain uppercase, lowercase, digit, and special character.';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setFieldErrors(newErrors);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -25,11 +89,11 @@ export default function Register({ onNavigateToLogin }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          username,
-          email,
-          phone,
+          username: trimmedUsername,
+          email: trimmedEmail,
+          phone: trimmedPhone || null,
           password,
-          barNumber,
+          barNumber: trimmedBarNumber.toUpperCase(), // Normalize to uppercase
           regDate
         })
       });
@@ -129,11 +193,16 @@ export default function Register({ onNavigateToLogin }) {
                     type="text"
                     required
                     placeholder="e.g. j_saman"
-                    className="courtx-input pl-10"
+                    className={`courtx-input courtx-input-with-icon ${fieldErrors.username ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                   />
                 </div>
+                {fieldErrors.username && (
+                  <p className="text-red-600 text-xs font-semibold mt-1.5 animate-fade-in flex items-center gap-1">
+                    <span>⚠️</span> {fieldErrors.username}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -147,11 +216,16 @@ export default function Register({ onNavigateToLogin }) {
                     type="email"
                     required
                     placeholder="saman@lawfirm.lk"
-                    className="courtx-input pl-10"
+                    className={`courtx-input courtx-input-with-icon ${fieldErrors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
+                {fieldErrors.email && (
+                  <p className="text-red-600 text-xs font-semibold mt-1.5 animate-fade-in flex items-center gap-1">
+                    <span>⚠️</span> {fieldErrors.email}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -167,11 +241,16 @@ export default function Register({ onNavigateToLogin }) {
                     type="text"
                     required
                     placeholder="BAR/YYYY/XXXX"
-                    className="courtx-input pl-10"
+                    className={`courtx-input courtx-input-with-icon ${fieldErrors.barNumber ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
                     value={barNumber}
                     onChange={(e) => setBarNumber(e.target.value)}
                   />
                 </div>
+                {fieldErrors.barNumber && (
+                  <p className="text-red-600 text-xs font-semibold mt-1.5 animate-fade-in flex items-center gap-1">
+                    <span>⚠️</span> {fieldErrors.barNumber}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -184,11 +263,16 @@ export default function Register({ onNavigateToLogin }) {
                     id="regDate"
                     type="date"
                     required
-                    className="courtx-input pl-10"
+                    className={`courtx-input courtx-input-with-icon ${fieldErrors.regDate ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
                     value={regDate}
                     onChange={(e) => setRegDate(e.target.value)}
                   />
                 </div>
+                {fieldErrors.regDate && (
+                  <p className="text-red-600 text-xs font-semibold mt-1.5 animate-fade-in flex items-center gap-1">
+                    <span>⚠️</span> {fieldErrors.regDate}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -203,11 +287,16 @@ export default function Register({ onNavigateToLogin }) {
                     id="phone"
                     type="tel"
                     placeholder="+94 77 123 4567"
-                    className="courtx-input pl-10"
+                    className={`courtx-input courtx-input-with-icon ${fieldErrors.phone ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                   />
                 </div>
+                {fieldErrors.phone && (
+                  <p className="text-red-600 text-xs font-semibold mt-1.5 animate-fade-in flex items-center gap-1">
+                    <span>⚠️</span> {fieldErrors.phone}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -221,7 +310,7 @@ export default function Register({ onNavigateToLogin }) {
                     type={showPassword ? 'text' : 'password'}
                     required
                     placeholder="Create Password (min. 8 chars)"
-                    className="courtx-input pl-10 pr-10"
+                    className={`courtx-input courtx-input-with-icon courtx-input-with-right-icon ${fieldErrors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
@@ -233,6 +322,11 @@ export default function Register({ onNavigateToLogin }) {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+                {fieldErrors.password && (
+                  <p className="text-red-600 text-xs font-semibold mt-1.5 animate-fade-in flex items-center gap-1">
+                    <span>⚠️</span> {fieldErrors.password}
+                  </p>
+                )}
               </div>
             </div>
 
