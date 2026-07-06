@@ -366,7 +366,6 @@ export default function StaffDashboard({ user, onLogout }) {
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded transition-all text-left text-sm font-medium ${activeTab === 'approve_lawyers' ? 'bg-teal-700 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
             >
               <UserCheck size={18} />
-              Approve Lawyers ({pendingLawyers.length})
               Approve Users ({pendingUsers.length})
             </button>
             <button
