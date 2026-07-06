@@ -4,6 +4,7 @@ import { Scale, User, Mail, Calendar, Hash, Phone, Lock, Eye, EyeOff, ShieldAler
 export default function Register({ onNavigateToLogin }) {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [role, setRole] = useState('lawyer');
   const [barNumber, setBarNumber] = useState('');
   const [regDate, setRegDate] = useState('');
   const [phone, setPhone] = useState('');
@@ -44,21 +45,25 @@ export default function Register({ onNavigateToLogin }) {
     }
 
     // 3. Bar Council Number validation (Format: BAR/YYYY/XXXX)
-    const barRegex = /^BAR\/\d{4}\/\d{3,5}$/i;
-    if (!trimmedBarNumber) {
-      newErrors.barNumber = 'Bar Council Number is required.';
-    } else if (!barRegex.test(trimmedBarNumber)) {
-      newErrors.barNumber = 'Must match registry format (e.g. BAR/2020/489).';
+    if (role === 'lawyer') {
+      const barRegex = /^BAR\/\d{4}\/\d{3,5}$/i;
+      if (!trimmedBarNumber) {
+        newErrors.barNumber = 'Bar Council Number is required.';
+      } else if (!barRegex.test(trimmedBarNumber)) {
+        newErrors.barNumber = 'Must match registry format (e.g. BAR/2020/489).';
+      }
     }
 
     // 4. Bar Registration Date validation
-    if (!regDate) {
-      newErrors.regDate = 'Bar Registration Date is required.';
-    } else {
-      const selectedDate = new Date(regDate);
-      const today = new Date();
-      if (selectedDate > today) {
-        newErrors.regDate = 'Registration date cannot be in the future.';
+    if (role === 'lawyer') {
+      if (!regDate) {
+        newErrors.regDate = 'Bar Registration Date is required.';
+      } else {
+        const selectedDate = new Date(regDate);
+        const today = new Date();
+        if (selectedDate > today) {
+          newErrors.regDate = 'Registration date cannot be in the future.';
+        }
       }
     }
 
@@ -93,8 +98,9 @@ export default function Register({ onNavigateToLogin }) {
           email: trimmedEmail,
           phone: trimmedPhone || null,
           password,
-          barNumber: trimmedBarNumber.toUpperCase(), // Normalize to uppercase
-          regDate
+          role,
+          barNumber: role === 'lawyer' ? trimmedBarNumber.toUpperCase() : null,
+          regDate: role === 'lawyer' ? regDate : null
         })
       });
       const data = await response.json();
@@ -158,10 +164,10 @@ export default function Register({ onNavigateToLogin }) {
         <div className="max-w-xl w-full mx-auto">
           {/* Header */}
           <div className="mb-6">
-            <h2 className="text-3xl font-bold text-slate-900 font-heading">Lawyer Registration</h2>
+            <h2 className="text-3xl font-bold text-slate-900 font-heading">User Registration</h2>
             <p className="text-slate-500 mt-2 text-sm leading-relaxed">
               Please provide your valid credentials to access the registry. <br />
-              Verification typically takes 1-3 days.
+              {role === 'lawyer' || role === 'staff' ? 'Verification typically takes 1-3 days.' : ''}
             </p>
           </div>
 
@@ -229,52 +235,71 @@ export default function Register({ onNavigateToLogin }) {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div>
-                <label className="courtx-label" htmlFor="barNumber">Bar Council Number</label>
-                <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-                    <Hash size={18} />
-                  </span>
-                  <input
-                    id="barNumber"
-                    type="text"
-                    required
-                    placeholder="BAR/YYYY/XXXX"
-                    className={`courtx-input courtx-input-with-icon ${fieldErrors.barNumber ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
-                    value={barNumber}
-                    onChange={(e) => setBarNumber(e.target.value)}
-                  />
-                </div>
-                {fieldErrors.barNumber && (
-                  <p className="text-red-600 text-xs font-semibold mt-1.5 animate-fade-in flex items-center gap-1">
-                    <span>⚠️</span> {fieldErrors.barNumber}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="courtx-label" htmlFor="regDate">Bar Registration Date</label>
-                <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-                    <Calendar size={18} />
-                  </span>
-                  <input
-                    id="regDate"
-                    type="date"
-                    required
-                    className={`courtx-input courtx-input-with-icon ${fieldErrors.regDate ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
-                    value={regDate}
-                    onChange={(e) => setRegDate(e.target.value)}
-                  />
-                </div>
-                {fieldErrors.regDate && (
-                  <p className="text-red-600 text-xs font-semibold mt-1.5 animate-fade-in flex items-center gap-1">
-                    <span>⚠️</span> {fieldErrors.regDate}
-                  </p>
-                )}
+                <label className="courtx-label" htmlFor="role">Account Type</label>
+                <select
+                  id="role"
+                  className="courtx-input"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                >
+                  <option value="lawyer">Lawyer</option>
+                  <option value="client">Client</option>
+                  <option value="staff">Court Staff</option>
+                </select>
               </div>
             </div>
+
+            {role === 'lawyer' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="courtx-label" htmlFor="barNumber">Bar Council Number</label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                      <Hash size={18} />
+                    </span>
+                    <input
+                      id="barNumber"
+                      type="text"
+                      required={role === 'lawyer'}
+                      placeholder="BAR/YYYY/XXXX"
+                      className={`courtx-input courtx-input-with-icon ${fieldErrors.barNumber ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
+                      value={barNumber}
+                      onChange={(e) => setBarNumber(e.target.value)}
+                    />
+                  </div>
+                  {fieldErrors.barNumber && (
+                    <p className="text-red-600 text-xs font-semibold mt-1.5 animate-fade-in flex items-center gap-1">
+                      <span>⚠️</span> {fieldErrors.barNumber}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="courtx-label" htmlFor="regDate">Bar Registration Date</label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                      <Calendar size={18} />
+                    </span>
+                    <input
+                      id="regDate"
+                      type="date"
+                      required={role === 'lawyer'}
+                      className={`courtx-input courtx-input-with-icon ${fieldErrors.regDate ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}`}
+                      value={regDate}
+                      onChange={(e) => setRegDate(e.target.value)}
+                    />
+                  </div>
+                  {fieldErrors.regDate && (
+                    <p className="text-red-600 text-xs font-semibold mt-1.5 animate-fade-in flex items-center gap-1">
+                      <span>⚠️</span> {fieldErrors.regDate}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>

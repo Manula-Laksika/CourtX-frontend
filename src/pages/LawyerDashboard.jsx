@@ -22,6 +22,7 @@ export default function LawyerDashboard({ user, onLogout }) {
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [clientPhone, setClientPhone] = useState('');
+  const [clientsList, setClientsList] = useState([]);
   const [fileToUpload, setFileToUpload] = useState(null);
   const [filingError, setFilingError] = useState('');
   const [filingSuccess, setFilingSuccess] = useState('');
@@ -64,6 +65,7 @@ export default function LawyerDashboard({ user, onLogout }) {
     fetchNotifications();
     fetchConversations();
     fetchUserProfile();
+    fetchClients();
   }, []);
 
   // Scroll to bottom of chat when messages change
@@ -98,6 +100,29 @@ export default function LawyerDashboard({ user, onLogout }) {
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const fetchClients = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:5001/api/users/clients', {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('courtx_token')}` }
+      });
+      const data = await response.json();
+      if (response.ok) setClientsList(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleClientSelect = (clientId) => {
+    const client = clientsList.find(c => c.id.toString() === clientId);
+    if (client) {
+      setClientName(client.username);
+      setClientEmail(client.email);
+    } else {
+      setClientName('');
+      setClientEmail('');
     }
   };
 
@@ -608,19 +633,28 @@ export default function LawyerDashboard({ user, onLogout }) {
 
               {/* Status Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <div className="courtx-card courtx-card-teal bg-white">
+                <div 
+                  className="courtx-card courtx-card-teal bg-white cursor-pointer hover:scale-105 transition-transform" 
+                  onClick={() => setActiveTab('my_cases')}
+                >
                   <div className="text-sm font-bold text-slate-400 uppercase tracking-wider">Total Active Cases</div>
                   <div className="text-3xl font-bold font-heading text-slate-800 mt-2">
                     {cases.filter(c => c.status === 'in_progress').length}
                   </div>
                 </div>
-                <div className="courtx-card courtx-card-gold bg-white">
+                <div 
+                  className="courtx-card courtx-card-gold bg-white cursor-pointer hover:scale-105 transition-transform"
+                  onClick={() => setActiveTab('my_cases')}
+                >
                   <div className="text-sm font-bold text-slate-400 uppercase tracking-wider">Pending Court Reviews</div>
                   <div className="text-3xl font-bold font-heading text-slate-800 mt-2">
                     {cases.filter(c => c.status === 'pending').length}
                   </div>
                 </div>
-                <div className="courtx-card bg-white">
+                <div 
+                  className="courtx-card bg-white cursor-pointer hover:scale-105 transition-transform"
+                  onClick={() => setActiveTab('calendar')}
+                >
                   <div className="text-sm font-bold text-slate-400 uppercase tracking-wider">Upcoming Hearings</div>
                   <div className="text-3xl font-bold font-heading text-slate-800 mt-2">
                     {hearings.filter(h => h.status === 'scheduled').length}
@@ -637,7 +671,7 @@ export default function LawyerDashboard({ user, onLogout }) {
                   ) : (
                     <div className="space-y-4">
                       {notifications.slice(0, 4).map(n => (
-                        <div key={n.id} className="p-3 bg-slate-50 border border-slate-100 rounded text-sm">
+                        <div key={n.id} className="p-3 bg-slate-50 border border-slate-100 rounded text-sm cursor-pointer hover:bg-slate-100 transition-colors">
                           <div className="font-bold text-slate-700 flex justify-between">
                             <span>{n.title}</span>
                             <span className="text-[10px] text-slate-400 font-normal">{n.created_at.slice(0, 10)}</span>
@@ -656,7 +690,11 @@ export default function LawyerDashboard({ user, onLogout }) {
                   ) : (
                     <div className="space-y-3">
                       {hearings.filter(h => h.status === 'scheduled').slice(0, 3).map(h => (
-                        <div key={h.id} className="flex justify-between items-center p-3 bg-teal-50/50 border border-teal-100/50 rounded">
+                        <div 
+                          key={h.id} 
+                          className="flex justify-between items-center p-3 bg-teal-50/50 border border-teal-100/50 rounded cursor-pointer hover:bg-teal-50 transition-colors"
+                          onClick={() => setActiveTab('calendar')}
+                        >
                           <div>
                             <div className="text-sm font-bold text-slate-800">{h.case_title}</div>
                             <div className="text-xs text-slate-500 mt-1">
@@ -719,15 +757,17 @@ export default function LawyerDashboard({ user, onLogout }) {
                     </select>
                   </div>
                   <div>
-                    <label className="courtx-label">Client Name</label>
-                    <input
-                      type="text"
+                    <label className="courtx-label">Select Client</label>
+                    <select
                       required
-                      placeholder="Full name of litigant"
                       className="courtx-input"
-                      value={clientName}
-                      onChange={(e) => setClientName(e.target.value)}
-                    />
+                      onChange={(e) => handleClientSelect(e.target.value)}
+                    >
+                      <option value="">-- Choose Existing Client --</option>
+                      {clientsList.map(c => (
+                        <option key={c.id} value={c.id}>{c.username} ({c.email})</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
@@ -737,8 +777,9 @@ export default function LawyerDashboard({ user, onLogout }) {
                     <input
                       type="email"
                       required
-                      placeholder="client@mail.lk"
-                      className="courtx-input"
+                      readOnly
+                      placeholder="Client email"
+                      className="courtx-input bg-slate-50 text-slate-500 cursor-not-allowed"
                       value={clientEmail}
                       onChange={(e) => setClientEmail(e.target.value)}
                     />
@@ -1011,20 +1052,7 @@ export default function LawyerDashboard({ user, onLogout }) {
                                   <p className="text-slate-700 leading-relaxed font-sans">{m.content.explanation}</p>
                                 </div>
 
-                                {m.sources && m.sources.length > 0 && (
-                                  <div className="text-[10px] text-slate-400 border-t border-slate-100 pt-2 flex flex-wrap gap-2 items-center">
-                                    <span className="font-bold uppercase tracking-wider">Sources:</span>
-                                    {m.sources.map((s, idx) => (
-                                      <button 
-                                        key={idx}
-                                        onClick={() => setSelectedSourceText(s)}
-                                        className="text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-100 hover:bg-teal-100 transition-colors font-medium"
-                                      >
-                                        {s}
-                                      </button>
-                                    ))}
-                                  </div>
-                                )}
+
                               </div>
                             )}
                           </div>
@@ -1064,64 +1092,7 @@ export default function LawyerDashboard({ user, onLogout }) {
                 </form>
               </div>
 
-              {/* Right Source Document Panel */}
-              <div className="w-80 border-l border-slate-200 bg-slate-50 p-6 hidden lg:block overflow-y-auto shrink-0">
-                <h4 className="text-sm font-bold text-slate-700 font-heading uppercase tracking-wider mb-4">Source Documents Panel</h4>
-                <p className="text-xs text-slate-400 leading-normal mb-6">
-                  Select a cited source reference below or click on any source badge in the conversation to review the underlying statutory or common law materials.
-                </p>
 
-                <div className="space-y-3">
-                  <button
-                    onClick={() => setSelectedSourceText('marriage_registration_ordinance.txt')}
-                    className={`w-full text-left p-3 border rounded text-xs transition-all ${selectedSourceText === 'marriage_registration_ordinance.txt' ? 'bg-white border-teal-600 shadow' : 'bg-white hover:bg-slate-100 border-slate-200'}`}
-                  >
-                    <div className="font-bold text-slate-800">Marriage Registration Ordinance</div>
-                    <div className="text-[10px] text-slate-400 mt-1">marriage_registration_ordinance.txt</div>
-                  </button>
-                  <button
-                    onClick={() => setSelectedSourceText('roman_dutch_law.txt')}
-                    className={`w-full text-left p-3 border rounded text-xs transition-all ${selectedSourceText === 'roman_dutch_law.txt' ? 'bg-white border-teal-600 shadow' : 'bg-white hover:bg-slate-100 border-slate-200'}`}
-                  >
-                    <div className="font-bold text-slate-800">Roman-Dutch Law principles</div>
-                    <div className="text-[10px] text-slate-400 mt-1">roman_dutch_law.txt</div>
-                  </button>
-                  <button
-                    onClick={() => setSelectedSourceText('case_law_judgments.txt')}
-                    className={`w-full text-left p-3 border rounded text-xs transition-all ${selectedSourceText === 'case_law_judgments.txt' ? 'bg-white border-teal-600 shadow' : 'bg-white hover:bg-slate-100 border-slate-200'}`}
-                  >
-                    <div className="font-bold text-slate-800">Divorce Precedent Judgments</div>
-                    <div className="text-[10px] text-slate-400 mt-1">case_law_judgments.txt</div>
-                  </button>
-                  <button
-                    onClick={() => setSelectedSourceText('lankalaw_references.txt')}
-                    className={`w-full text-left p-3 border rounded text-xs transition-all ${selectedSourceText === 'lankalaw_references.txt' ? 'bg-white border-teal-600 shadow' : 'bg-white hover:bg-slate-100 border-slate-200'}`}
-                  >
-                    <div className="font-bold text-slate-800">Lankalaw Procedural Guides</div>
-                    <div className="text-[10px] text-slate-400 mt-1">lankalaw_references.txt</div>
-                  </button>
-                </div>
-
-                {selectedSourceText && (
-                  <div className="mt-6 border-t border-slate-200 pt-4 animate-fade-in">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-[10px] font-bold text-teal-700 uppercase tracking-widest">Document Content:</span>
-                      <button 
-                        onClick={() => setSelectedSourceText('')}
-                        className="text-[10px] text-red-600 hover:underline font-semibold"
-                      >
-                        Hide
-                      </button>
-                    </div>
-                    <div className="p-3 bg-white border border-slate-200 rounded text-[11px] font-mono leading-relaxed max-h-40 overflow-y-auto text-slate-500 whitespace-pre-wrap">
-                      {selectedSourceText === 'marriage_registration_ordinance.txt' && "MARRIAGE REGISTRATION ORDINANCE OF SRI LANKA\nSection 19 - Grounds for Divorce\n\nAccording to the Marriage Registration Ordinance of Sri Lanka, a marriage may be dissolved only on one or more of the following three legal grounds:\n1. Adultery committed by either party after the marriage.\n2. Malicious desertion by either party.\n3. Incurable impotency of either party at the time of the marriage."}
-                      {selectedSourceText === 'roman_dutch_law.txt' && "ROMAN-DUTCH LAW PRINCIPLES OF DIVORCE IN SRI LANKA\nMatrimonial Faults and Desertion\n\nRoman-Dutch Law is the common law of Sri Lanka. Under Roman-Dutch law, divorce is based on the concept of matrimonial fault. The court will not dissolve a marriage unless a matrimonial offence has been committed by one of the spouses.\n\n1. Malicious Desertion (Actual vs. Constructive)\nActual Malicious Desertion: Occurs when one spouse physically leaves the matrimonial home...\nConstructive Malicious Desertion: Occurs when one spouse, by their intolerable conduct, cruelty..."}
-                      {selectedSourceText === 'case_law_judgments.txt' && "SRI LANKA CASE LAW ON DIVORCE & MALICIOUS DESERTION\nKey Precedents from Court of Appeal and Supreme Court\n\n1. Wijesinghe v. Wijesinghe (1998) 2 Sri L.R. 321\nCourt: Supreme Court of Sri Lanka\nTopic: Constructive Malicious Desertion\nSummary: The Supreme Court held that to establish constructive malicious desertion, the plaintiff must prove that the defendant's conduct was of such a grave nature..."}
-                      {selectedSourceText === 'lankalaw_references.txt' && "LANKALAW REFERENCE GUIDE: DIVORCE PROCEDURES IN SRI LANKA\nFiling Requirements and Jurisdictional Rules\n\n1. Jurisdictional Courts\nUnder the Civil Procedure Code of Sri Lanka, actions for divorce must be instituted in the District Court within the local limits of whose jurisdiction...\n- The marriage was solemnized, OR\n- The husband and wife reside, OR\n- The defendant resides or carries on business."}
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
           )}
 
