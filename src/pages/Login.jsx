@@ -4,6 +4,7 @@ import { Mail, Lock, Eye, EyeOff, Scale, ShieldAlert } from 'lucide-react';
 export default function Login({ onLoginSuccess, onNavigateToRegister }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('lawyer');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -42,7 +43,7 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
       const response = await fetch('http://127.0.0.1:5001/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: trimmedEmail, password })
+        body: JSON.stringify({ email: trimmedEmail, password, role })
       });
       const data = await response.json();
 
@@ -61,9 +62,10 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
     }
   };
 
-  const handleFillCredentials = (testEmail, testPassword) => {
+  const handleFillCredentials = (testEmail, testPassword, testRole) => {
     setEmail(testEmail);
     setPassword(testPassword);
+    if (testRole) setRole(testRole);
     setFieldErrors({});
   };
 
@@ -103,7 +105,7 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
         <div className="max-w-md w-full mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <h2 className="text-3xl font-bold text-slate-900 font-heading">Lawyer Login</h2>
+            <h2 className="text-3xl font-bold text-slate-900 font-heading">User Login</h2>
             <p className="text-slate-500 mt-2">Enter your registry credentials to sign in.</p>
           </div>
 
@@ -116,6 +118,21 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="courtx-label" htmlFor="role">Account Type</label>
+              <select
+                id="role"
+                className="courtx-input"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+              >
+                <option value="lawyer">Lawyer</option>
+                <option value="client">Client</option>
+                <option value="staff">Court Staff</option>
+                <option value="admin">Super Admin</option>
+              </select>
+            </div>
+
             <div>
               <label className="courtx-label" htmlFor="email">E-mail Address</label>
               <div className="relative">
@@ -199,28 +216,28 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
             <h4 className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2.5">Demo Accounts:</h4>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <button
-                onClick={() => handleFillCredentials('lawyer@courtx.lk', 'Lawyer@123')}
+                onClick={() => handleFillCredentials('lawyer@courtx.lk', 'Lawyer@123', 'lawyer')}
                 className="p-2 bg-white border border-slate-200 rounded hover:bg-slate-100 text-left"
               >
                 <strong>Lawyer Workspace</strong>
                 <div className="text-slate-500">lawyer@courtx.lk</div>
               </button>
               <button
-                onClick={() => handleFillCredentials('staff@courtx.lk', 'Staff@123')}
+                onClick={() => handleFillCredentials('staff@courtx.lk', 'Staff@123', 'staff')}
                 className="p-2 bg-white border border-slate-200 rounded hover:bg-slate-100 text-left"
               >
                 <strong>Court Staff Registry</strong>
                 <div className="text-slate-500">staff@courtx.lk</div>
               </button>
               <button
-                onClick={() => handleFillCredentials('client@courtx.lk', 'Client@123')}
+                onClick={() => handleFillCredentials('client@courtx.lk', 'Client@123', 'client')}
                 className="p-2 bg-white border border-slate-200 rounded hover:bg-slate-100 text-left"
               >
                 <strong>Client (Litigant) View</strong>
                 <div className="text-slate-500">client@courtx.lk</div>
               </button>
               <button
-                onClick={() => handleFillCredentials('admin@courtx.lk', 'Admin@123')}
+                onClick={() => handleFillCredentials('admin@courtx.lk', 'Admin@123', 'admin')}
                 className="p-2 bg-white border border-slate-200 rounded hover:bg-slate-100 text-left"
               >
                 <strong>Super Admin</strong>

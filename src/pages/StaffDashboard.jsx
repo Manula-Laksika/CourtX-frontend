@@ -10,7 +10,7 @@ export default function StaffDashboard({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('overview'); // overview, review_cases, schedule_hearings, approve_lawyers, search, analytics
   const [cases, setCases] = useState([]);
   const [hearings, setHearings] = useState([]);
-  const [pendingLawyers, setPendingLawyers] = useState([]);
+  const [pendingUsers, setPendingUsers] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   
   // Search query states
@@ -43,7 +43,7 @@ export default function StaffDashboard({ user, onLogout }) {
   useEffect(() => {
     fetchCases();
     fetchHearings();
-    fetchPendingLawyers();
+    fetchPendingUsers();
     fetchAnalytics();
     fetchUsers();
     fetchUserProfile();
@@ -73,13 +73,13 @@ export default function StaffDashboard({ user, onLogout }) {
     }
   };
 
-  const fetchPendingLawyers = async () => {
+  const fetchPendingUsers = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:5001/api/lawyers/pending', {
+      const response = await fetch('http://127.0.0.1:5001/api/users/pending', {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('courtx_token')}` }
       });
       const data = await response.json();
-      if (response.ok) setPendingLawyers(data);
+      if (response.ok) setPendingUsers(data);
     } catch (err) {
       console.error(err);
     }
@@ -197,15 +197,15 @@ export default function StaffDashboard({ user, onLogout }) {
     }
   };
 
-  const handleApproveLawyer = async (lawyerId) => {
-    if (!window.confirm('Approve registration for this Lawyer?')) return;
+  const handleApproveUser = async (userId, userRole) => {
+    if (!window.confirm(`Approve registration for this ${userRole}?`)) return;
     try {
-      const response = await fetch(`http://127.0.0.1:5001/api/lawyers/${lawyerId}/approve`, {
+      const response = await fetch(`http://127.0.0.1:5001/api/users/${userId}/approve`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('courtx_token')}` }
       });
       if (response.ok) {
-        fetchPendingLawyers();
+        fetchPendingUsers();
         fetchAnalytics();
       }
     } catch (err) {
@@ -282,10 +282,14 @@ export default function StaffDashboard({ user, onLogout }) {
     }
 
     const filtered = cases.filter(c => 
-      c.case_number.toLowerCase().includes(queryStr) ||
-      c.title.toLowerCase().includes(queryStr) ||
-      c.client_name.toLowerCase().includes(queryStr) ||
-      (c.lawyer_name && c.lawyer_name.toLowerCase().includes(queryStr))
+      (c.case_number && c.case_number.toLowerCase().includes(queryStr)) ||
+      (c.title && c.title.toLowerCase().includes(queryStr)) ||
+      (c.client_name && c.client_name.toLowerCase().includes(queryStr)) ||
+      (c.lawyer_name && c.lawyer_name.toLowerCase().includes(queryStr)) ||
+      (c.case_type && c.case_type.toLowerCase().includes(queryStr)) ||
+      (c.status && c.status.toLowerCase().includes(queryStr)) ||
+      (c.description && c.description.toLowerCase().includes(queryStr)) ||
+      (c.client_email && c.client_email.toLowerCase().includes(queryStr))
     );
     setSearchResults(filtered);
   };
@@ -363,6 +367,7 @@ export default function StaffDashboard({ user, onLogout }) {
             >
               <UserCheck size={18} />
               Approve Lawyers ({pendingLawyers.length})
+              Approve Users ({pendingUsers.length})
             </button>
             <button
               onClick={() => setActiveTab('search')}
@@ -445,19 +450,31 @@ export default function StaffDashboard({ user, onLogout }) {
               {/* Stats Cards */}
               {analytics && (
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
-                  <div className="courtx-card courtx-card-teal bg-white">
+                  <div 
+                    onClick={() => setActiveTab('review_cases')}
+                    className="courtx-card courtx-card-teal bg-white cursor-pointer hover:scale-105 hover:shadow-lg transition-transform"
+                  >
                     <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Pending Approvals</div>
                     <div className="text-3xl font-bold font-heading text-slate-800 mt-2">{analytics.totals.pending}</div>
                   </div>
-                  <div className="courtx-card courtx-card-gold bg-white">
+                  <div 
+                    onClick={() => setActiveTab('schedule_hearings')}
+                    className="courtx-card courtx-card-gold bg-white cursor-pointer hover:scale-105 hover:shadow-lg transition-transform"
+                  >
                     <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Trials</div>
                     <div className="text-3xl font-bold font-heading text-slate-800 mt-2">{analytics.totals.active}</div>
                   </div>
-                  <div className="courtx-card bg-white">
+                  <div 
+                    onClick={() => setActiveTab('directory')}
+                    className="courtx-card bg-white cursor-pointer hover:scale-105 transition-transform border border-slate-200 hover:border-teal-500 hover:shadow-lg"
+                  >
                     <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Registered Lawyers</div>
                     <div className="text-3xl font-bold font-heading text-slate-800 mt-2">{analytics.totals.lawyers}</div>
                   </div>
-                  <div className="courtx-card bg-white">
+                  <div 
+                    onClick={() => setActiveTab('schedule_hearings')}
+                    className="courtx-card bg-white cursor-pointer hover:scale-105 transition-transform border border-slate-200 hover:border-teal-500 hover:shadow-lg"
+                  >
                     <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Hearings Logged</div>
                     <div className="text-3xl font-bold font-heading text-slate-800 mt-2">{analytics.totals.hearings}</div>
                   </div>
@@ -493,17 +510,17 @@ export default function StaffDashboard({ user, onLogout }) {
                 <div className="courtx-card bg-white">
                   <h3 className="text-base font-bold text-slate-800 mb-4 font-heading">New Bar Members to Authorize</h3>
                   <div className="space-y-3">
-                    {pendingLawyers.length === 0 ? (
-                      <p className="text-slate-400 text-sm">No lawyer registrations pending verification.</p>
+                    {pendingUsers.length === 0 ? (
+                      <p className="text-slate-400 text-sm">No user registrations pending verification.</p>
                     ) : (
-                      pendingLawyers.slice(0, 3).map(l => (
+                      pendingUsers.slice(0, 3).map(l => (
                         <div key={l.id} className="flex justify-between items-center p-3 border border-slate-100 bg-slate-50 rounded text-sm">
                           <div>
                             <div className="font-bold text-slate-800">{l.username}</div>
                             <div className="text-xs text-slate-500 mt-0.5">Bar No: {l.bar_number} &bull; Reg: {l.reg_date}</div>
                           </div>
                           <button
-                            onClick={() => handleApproveLawyer(l.id)}
+                            onClick={() => handleApproveUser(l.id, l.role)}
                             className="p-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded transition-colors"
                             title="Approve User Credentials"
                           >
@@ -684,40 +701,67 @@ export default function StaffDashboard({ user, onLogout }) {
             </div>
           )}
 
-          {/* TAB 4: APPROVE LAWYERS */}
+          {/* TAB 4: APPROVE USERS */}
           {activeTab === 'approve_lawyers' && (
-            <div className="courtx-card bg-white p-6">
-              <h3 className="text-lg font-bold text-slate-800 font-heading mb-4">Lawyer Bar Association Registrations</h3>
-              {pendingLawyers.length === 0 ? (
-                <p className="text-slate-400 text-sm text-center py-8">No pending registrations awaiting approval.</p>
+            <div className="space-y-6">
+              <div className="flex justify-between items-center bg-white p-6 rounded shadow-sm">
+                <div>
+                  <h3 className="text-xl font-bold font-heading">User Registration Approvals</h3>
+                  <p className="text-slate-500 text-sm">Review credentials before granting system access.</p>
+                </div>
+              </div>
+
+              {pendingUsers.length === 0 ? (
+                <div className="bg-white p-12 text-center rounded border border-slate-100 shadow-sm">
+                  <CheckSquare size={48} className="mx-auto text-teal-200 mb-4" />
+                  <h4 className="text-lg font-bold text-slate-800">All caught up</h4>
+                  <p className="text-slate-500 text-sm">There are currently no pending users waiting for approval.</p>
+                </div>
               ) : (
-                <div className="courtx-table-container">
-                  <table className="courtx-table">
-                    <thead>
+                <div className="bg-white rounded shadow-sm overflow-hidden">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-slate-50 border-b border-slate-100 text-xs uppercase text-slate-500 font-bold">
                       <tr>
-                        <th>Username</th>
-                        <th>Email Address</th>
-                        <th>Bar Council ID</th>
-                        <th>Registration Date</th>
-                        <th>Phone</th>
-                        <th>Actions</th>
+                        <th className="p-4">User Details</th>
+                        <th className="p-4">Role</th>
+                        <th className="p-4">Contact Info</th>
+                        <th className="p-4">Bar Council No / Reg Date</th>
+                        <th className="p-4 text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody>
-                      {pendingLawyers.map(l => (
-                        <tr key={l.id}>
-                          <td className="font-bold text-slate-800">{l.username}</td>
-                          <td>{l.email}</td>
-                          <td className="font-mono text-xs">{l.bar_number}</td>
-                          <td>{l.reg_date}</td>
-                          <td>{l.phone || 'N/A'}</td>
-                          <td>
+                    <tbody className="divide-y divide-slate-100">
+                      {pendingUsers.map(u => (
+                        <tr key={u.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="p-4">
+                            <div className="font-bold text-slate-800">{u.username}</div>
+                            <div className="text-xs text-slate-400">ID: {u.id}</div>
+                          </td>
+                          <td className="p-4">
+                            <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-semibold capitalize">
+                              {u.role.replace('_', ' ')}
+                            </span>
+                          </td>
+                          <td className="p-4 text-slate-600">
+                            <div>{u.email}</div>
+                            {u.phone && <div className="text-xs text-slate-400">{u.phone}</div>}
+                          </td>
+                          <td className="p-4 text-slate-600">
+                            {u.role === 'lawyer' ? (
+                              <>
+                                <div className="font-mono text-xs">{u.bar_number}</div>
+                                <div className="text-xs text-slate-400">Reg: {new Date(u.reg_date).toLocaleDateString()}</div>
+                              </>
+                            ) : (
+                              <div className="text-slate-400 text-xs italic">N/A</div>
+                            )}
+                          </td>
+                          <td className="p-4 text-right">
                             <button
-                              onClick={() => handleApproveLawyer(l.id)}
-                              className="courtx-btn courtx-btn-teal text-xs py-1 px-3 flex items-center gap-1 font-bold uppercase tracking-wider"
+                              onClick={() => handleApproveUser(u.id, u.role)}
+                              className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 ml-auto"
                             >
-                              <Check size={12} />
-                              Verify &amp; Approve
+                              <Check size={14} />
+                              Approve
                             </button>
                           </td>
                         </tr>
