@@ -27,7 +27,7 @@ export default function ClientDashboard({ user, onLogout }) {
     "Can I file for divorce due to malicious desertion?",
     "What are the legal requirements for constructive malicious desertion?",
     "Which Act applies if the spouse committed adultery?",
-    "What case law discusses malicious desertion?"
+    "What case law discusses malicious desertion ?"
   ];
 
   // Profile States
@@ -74,7 +74,7 @@ export default function ClientDashboard({ user, onLogout }) {
       const hearingData = await hearingRes.json();
       if (hearingRes.ok) setHearings(hearingData);
 
-      // Fetch Client's notifications
+      // Get client's notification
       const notifRes = await fetch('http://127.0.0.1:5001/api/notifications', { headers: authHeader });
       const notifData = await notifRes.json();
       if (notifRes.ok) setNotifications(notifData);
