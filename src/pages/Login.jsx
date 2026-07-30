@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, Scale, ShieldAlert } from 'lucide-react';
 
-export default function Login({ onLoginSuccess, onNavigateToRegister }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState('lawyer');
+const Login = ({ onLoginSuccess, onNavigateToRegister }) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("lawyer");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
 
