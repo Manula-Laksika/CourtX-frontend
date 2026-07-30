@@ -8,7 +8,7 @@ import Modal from '../components/Modal';
 import ReactMarkdown from 'react-markdown';
 
 export default function LawyerDashboard({ user, onLogout }) {
-  const [activeTab, setActiveTab] = useState('overview'); // overview, file_case, my_cases, calendar, ai_assistant
+  const [activeTab, setActiveTab] = useState('overview');  //  overview, file_case, my_cases, calendar, ai_assistant
   const [cases, setCases] = useState([]);
   const [hearings, setHearings] = useState([]);
   const [notifications, setNotifications] = useState([]);
