@@ -167,7 +167,7 @@ export default function Register({ onNavigateToLogin }) {
             <h2 className="text-3xl font-bold text-slate-900 font-heading">User Registration</h2>
             <p className="text-slate-500 mt-2 text-sm leading-relaxed">
               Please provide your valid credentials to access the registry. <br />
-              {role === 'lawyer' || role === 'staff' ? 'Verification typically takes 1-3 days.' : ''}
+              {role === 'lawyer' || role === 'court_staff' ? 'Verification typically takes 1-3 days.' : ''}
             </p>
           </div>
 
@@ -246,7 +246,7 @@ export default function Register({ onNavigateToLogin }) {
                 >
                   <option value="lawyer">Lawyer</option>
                   <option value="client">Client</option>
-                  <option value="staff">Court Staff</option>
+                  <option value="court_staff">Court Staff</option>
                 </select>
               </div>
             </div>
