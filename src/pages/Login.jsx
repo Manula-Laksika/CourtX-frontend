@@ -250,3 +250,5 @@ const Login = ({ onLoginSuccess, onNavigateToRegister }) => {
     </div>
   );
 }
+
+export default Login;
