@@ -59,10 +59,10 @@ const Login = ({ onLoginSuccess, onNavigateToRegister }) => {
       await new Promise(resolve => setTimeout(resolve, 600)); // Simulate network delay
       
       const mockUsers = {
-        'lawyer': { id: 1, name: 'Kamal Perera', role: 'lawyer', email: 'lawyer@courtx.lk' },
-        'client': { id: 2, name: 'Nimal Silva', role: 'client', email: 'client@courtx.lk' },
-        'court_staff': { id: 3, name: 'Sunil Registrar', role: 'court_staff', email: 'staff@courtx.lk' },
-        'admin': { id: 4, name: 'Super Admin', role: 'admin', email: 'admin@courtx.lk' }
+        'lawyer': { id: 1, username: 'Kamal Perera', role: 'lawyer', email: 'lawyer@courtx.lk' },
+        'client': { id: 2, username: 'Nimal Silva', role: 'client', email: 'client@courtx.lk' },
+        'court_staff': { id: 3, username: 'Sunil Registrar', role: 'court_staff', email: 'staff@courtx.lk' },
+        'admin': { id: 4, username: 'Super Admin', role: 'admin', email: 'admin@courtx.lk' }
       };
 
       const defaultPasswords = {
