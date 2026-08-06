@@ -10,6 +10,21 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
 
+  // Auto-fill for demo purposes when role changes
+  React.useEffect(() => {
+    const demoAccounts = {
+      'lawyer': { email: 'lawyer@courtx.lk', password: 'Lawyer@123' },
+      'client': { email: 'client@courtx.lk', password: 'Client@123' },
+      'court_staff': { email: 'staff@courtx.lk', password: 'Staff@123' },
+      'admin': { email: 'admin@courtx.lk', password: 'Admin@123' },
+    };
+    if (demoAccounts[role]) {
+      setEmail(demoAccounts[role].email);
+      setPassword(demoAccounts[role].password);
+      setFieldErrors({});
+    }
+  }, [role]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -40,15 +55,29 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
     setLoading(true);
 
     try {
-      const response = await fetch('http://127.0.0.1:5001/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: trimmedEmail, password, role })
-      });
-      const data = await response.json();
+      // FRONTEND DEMO OVERRIDE: Mock backend response for frontend-only deployment
+      await new Promise(resolve => setTimeout(resolve, 600)); // Simulate network delay
+      
+      const mockUsers = {
+        'lawyer': { id: 1, name: 'Kamal Perera', role: 'lawyer', email: 'lawyer@courtx.lk' },
+        'client': { id: 2, name: 'Nimal Silva', role: 'client', email: 'client@courtx.lk' },
+        'court_staff': { id: 3, name: 'Sunil Registrar', role: 'court_staff', email: 'staff@courtx.lk' },
+        'admin': { id: 4, name: 'Super Admin', role: 'admin', email: 'admin@courtx.lk' }
+      };
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
+      const defaultPasswords = {
+        'lawyer': 'Lawyer@123',
+        'client': 'Client@123',
+        'court_staff': 'Staff@123',
+        'admin': 'Admin@123'
+      };
+
+      let data;
+      // Allow login if they use the correct default password for the role
+      if (password === defaultPasswords[role] && trimmedEmail === mockUsers[role].email) {
+        data = { token: 'demo-token-' + Date.now(), user: mockUsers[role] };
+      } else {
+        throw new Error('Invalid demo credentials. Please use the Demo Accounts below.');
       }
 
       // Success
@@ -128,7 +157,7 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
               >
                 <option value="lawyer">Lawyer</option>
                 <option value="client">Client</option>
-                <option value="staff">Court Staff</option>
+                <option value="court_staff">Court Staff</option>
                 <option value="admin">Super Admin</option>
               </select>
             </div>
@@ -223,7 +252,7 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
                 <div className="text-slate-500">lawyer@courtx.lk</div>
               </button>
               <button
-                onClick={() => handleFillCredentials('staff@courtx.lk', 'Staff@123', 'staff')}
+                onClick={() => handleFillCredentials('staff@courtx.lk', 'Staff@123', 'court_staff')}
                 className="p-2 bg-white border border-slate-200 rounded hover:bg-slate-100 text-left"
               >
                 <strong>Court Staff Registry</strong>
