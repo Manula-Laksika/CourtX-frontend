@@ -128,7 +128,7 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
               >
                 <option value="lawyer">Lawyer</option>
                 <option value="client">Client</option>
-                <option value="staff">Court Staff</option>
+                <option value="court_staff">Court Staff</option>
                 <option value="admin">Super Admin</option>
               </select>
             </div>
@@ -223,7 +223,7 @@ export default function Login({ onLoginSuccess, onNavigateToRegister }) {
                 <div className="text-slate-500">lawyer@courtx.lk</div>
               </button>
               <button
-                onClick={() => handleFillCredentials('staff@courtx.lk', 'Staff@123', 'staff')}
+                onClick={() => handleFillCredentials('staff@courtx.lk', 'Staff@123', 'court_staff')}
                 className="p-2 bg-white border border-slate-200 rounded hover:bg-slate-100 text-left"
               >
                 <strong>Court Staff Registry</strong>
