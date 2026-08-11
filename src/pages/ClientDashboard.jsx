@@ -4,6 +4,7 @@ import {
   MapPin, Clock, LogOut, CheckCircle, ShieldAlert, User,
   MessageSquare, Plus, Trash2, Send, Sparkles, RefreshCw, Copy, Menu, X
 } from 'lucide-react';
+import NotificationCenter from '../components/NotificationCenter';
 
 export default function ClientDashboard({ user, onLogout }) {
   const [cases, setCases] = useState([]);
@@ -78,7 +79,13 @@ export default function ClientDashboard({ user, onLogout }) {
       // Get client's notification
       const notifRes = await fetch('http://127.0.0.1:5001/api/notifications', { headers: authHeader });
       const notifData = await notifRes.json();
-      if (notifRes.ok) setNotifications(notifData);
+      if (notifRes.ok) {
+        setNotifications(
+          Array.isArray(notifData)
+            ? notifData
+            : (notifData.notifications || [])
+        );
+      }
 
     } catch (err) {
       console.error(err);

@@ -5,6 +5,7 @@ import {
   Clock, ShieldAlert, CheckSquare, Layers, LogOut, User, Menu
 } from 'lucide-react';
 import Modal from '../components/Modal';
+import NotificationCenter from '../components/NotificationCenter';
 
 export default function StaffDashboard({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('overview'); // overview, review_cases, schedule_hearings, approve_lawyers, search, analytics
@@ -450,8 +451,20 @@ export default function StaffDashboard({ user, onLogout }) {
               {activeTab.replaceAll('_', ' ')}
             </h2>
           </div>
-          <div className="text-xs text-slate-500 font-semibold bg-slate-100 px-3 py-1.5 rounded border border-slate-200 hidden sm:block">
-            District Court Clerk Office
+          <div className="flex items-center gap-4">
+            <NotificationCenter 
+              user={user}
+              onSelectCase={(caseId) => {
+                const targetCase = cases.find(c => c.id === caseId);
+                if (targetCase) {
+                  setSelectedCaseReview(targetCase);
+                  setActiveTab('review_cases');
+                }
+              }}
+            />
+            <div className="text-xs text-slate-500 font-semibold bg-slate-100 px-3 py-1.5 rounded border border-slate-200 hidden sm:block">
+              District Court Clerk Office
+            </div>
           </div>
         </header>
 
