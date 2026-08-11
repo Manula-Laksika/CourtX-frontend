@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Scale, BookOpen, Briefcase, Calendar as CalendarIcon, MessageSquare, 
   Plus, Upload, Copy, Trash2, Send, FileText, ChevronRight, LogOut, 
-  Search, ShieldAlert, Sparkles, User, UserCheck, RefreshCw, Layers, Menu
+  Search, ShieldAlert, Sparkles, User, UserCheck, RefreshCw, Layers, Menu,
+  Clock, MapPin
 } from 'lucide-react';
 import Modal from '../components/Modal';
 import NotificationCenter from '../components/NotificationCenter';
@@ -593,13 +594,6 @@ export default function LawyerDashboard({ user, onLogout }) {
               Hearing Calendar
             </button>
             <button
-              onClick={() => { setActiveTab('ai_assistant'); setIsMobileMenuOpen(false); }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded transition-all text-left text-sm font-medium ${activeTab === 'ai_assistant' ? 'bg-teal-700 text-white font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
-            >
-              <MessageSquare size={18} className="text-teal-400" />
-              AI Legal Assistant
-            </button>
-            <button
               onClick={() => { setActiveTab('profile_settings'); setIsMobileMenuOpen(false); }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded transition-all text-left text-sm font-medium ${activeTab === 'profile_settings' ? 'bg-teal-700 text-white font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
             >
@@ -929,219 +923,50 @@ export default function LawyerDashboard({ user, onLogout }) {
 
           {/* TAB 4: CALENDAR */}
           {activeTab === 'calendar' && (
-            <div className="courtx-card bg-white p-6">
-              <h3 className="text-lg font-bold text-slate-800 font-heading mb-4">Scheduled Hearings Calendar</h3>
-              {loadingHearings ? (
-                <div className="text-center py-8 text-slate-400">Loading schedules...</div>
-              ) : hearings.length === 0 ? (
-                <p className="text-slate-400 text-sm">No scheduled hearing dates.</p>
+            <div className="space-y-6">
+              <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm">
+                <h3 className="text-lg font-bold text-slate-800 font-heading">Upcoming Hearings</h3>
+                <div className="flex gap-2">
+                  <button className="courtx-btn courtx-btn-secondary px-3 py-1.5 text-xs flex items-center gap-2">
+                    <CalendarIcon size={14} /> Month
+                  </button>
+                  <button className="courtx-btn courtx-btn-primary px-3 py-1.5 text-xs flex items-center gap-2">
+                    <CalendarIcon size={14} /> Week
+                  </button>
+                </div>
+              </div>
+
+              {hearings.length === 0 ? (
+                <div className="bg-white p-12 text-center rounded-lg shadow-sm text-slate-500">
+                  <CalendarIcon size={32} className="mx-auto text-slate-300 mb-2" />
+                  No upcoming hearings scheduled.
+                </div>
               ) : (
-                <div className="courtx-table-container">
-                  <table className="courtx-table">
-                    <thead>
-                      <tr>
-                        <th>Case Reference</th>
-                        <th>Hearing Date</th>
-                        <th>Hearing Time</th>
-                        <th>Courtroom Location</th>
-                        <th>Presiding Judge</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {hearings.map(h => (
-                        <tr key={h.id}>
-                          <td className="font-bold text-slate-800">
-                            {h.case_title} <br />
-                            <span className="text-xs font-mono text-slate-400">{h.case_number}</span>
-                          </td>
-                          <td className="font-semibold">{h.hearing_date}</td>
-                          <td>{h.hearing_time}</td>
-                          <td>{h.courtroom}</td>
-                          <td className="italic">{h.judge || 'Registrar Office'}</td>
-                          <td>
-                            <span className={`courtx-badge ${h.status === 'scheduled' ? 'courtx-badge-inprogress' : 'courtx-badge-approved'}`}>
-                              {h.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {hearings.map(h => {
+                    const hDate = new Date(h.hearing_date);
+                    const isToday = new Date().toDateString() === hDate.toDateString();
+                    return (
+                      <div key={h.id} className={`courtx-card p-5 border-l-4 ${isToday ? 'border-amber-500 bg-amber-50/30' : 'border-teal-600 bg-white'}`}>
+                        {isToday && <div className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-2 flex items-center gap-1"><Sparkles size={10} /> TODAY</div>}
+                        <div className="text-xl font-bold text-slate-800 mb-1">{hDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</div>
+                        <div className="text-teal-700 font-semibold mb-3 flex items-center gap-1.5">
+                          <Clock size={14} />
+                          {h.hearing_time}
+                        </div>
+                        <div className="text-sm font-bold text-slate-800 uppercase tracking-wide truncate mb-1" title={h.case_title}>
+                          {h.case_title}
+                        </div>
+                        <div className="text-xs text-slate-500 font-mono mb-3">Case #{h.case_number}</div>
+                        <div className="flex items-start gap-2 text-xs text-slate-600 bg-slate-50 p-2 rounded">
+                          <MapPin size={14} className="mt-0.5 shrink-0 text-slate-400" />
+                          <span>{h.courtroom}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
-            </div>
-          )}
-
-          {/* TAB 5: AI LEGAL ASSISTANT (RAG MODULE) */}
-          {activeTab === 'ai_assistant' && (
-            <div className="flex flex-col lg:flex-row h-[78vh] border border-slate-200 rounded-lg overflow-hidden bg-white shadow-md">
-              
-              {/* Left Chat History Pane */}
-              <div className="w-full lg:w-64 border-r border-slate-200 bg-slate-50 flex flex-col justify-between shrink-0">
-                <div>
-                  <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-[#FDFBF7]">
-                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Research Sessions</span>
-                    <button
-                      onClick={createNewConversation}
-                      className="p-1 text-teal-600 hover:bg-teal-50 rounded transition-colors"
-                      title="New Consultation"
-                    >
-                      <Plus size={18} />
-                    </button>
-                  </div>
-
-                  <div className="p-2 space-y-1 overflow-y-auto max-h-[50vh]">
-                    {aiConvos.map(c => (
-                      <button
-                        key={c.id}
-                        onClick={() => selectConversation(c.id)}
-                        className={`w-full text-left p-3 rounded text-xs transition-colors flex items-center gap-2 truncate ${activeConvoId === c.id ? 'bg-teal-700 text-white font-bold' : 'text-slate-600 hover:bg-slate-200'}`}
-                      >
-                        <MessageSquare size={14} className={activeConvoId === c.id ? 'text-white' : 'text-slate-400'} />
-                        <span className="truncate">{c.title}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="p-4 border-t border-slate-200">
-                  <button
-                    onClick={clearConvoHistory}
-                    className="w-full flex items-center justify-center gap-2 py-2 border border-slate-200 rounded hover:bg-red-50 text-red-600 hover:text-red-700 text-xs transition-colors"
-                  >
-                    <Trash2 size={14} />
-                    Clear Chat History
-                  </button>
-                </div>
-              </div>
-
-              {/* Middle Chat Interface */}
-              <div className="flex-1 flex flex-col justify-between h-full bg-[#FDFBF7]">
-                
-                {/* Chat Message Window */}
-                <div className="flex-1 p-6 overflow-y-auto space-y-6">
-                  {aiMessages.length === 0 ? (
-                    <div className="h-full flex flex-col justify-center items-center text-center max-w-lg mx-auto">
-                      <div className="p-4 bg-teal-50 border border-teal-100 rounded-full text-teal-600 mb-4 animate-pulse">
-                        <Sparkles size={36} />
-                      </div>
-                      <h4 className="text-xl font-serif text-slate-800 mb-2">CourtX AI Legal Assistant</h4>
-                      <p className="text-slate-500 text-sm leading-relaxed mb-6">
-                        Welcome to your specialized legal assistant for **Sri Lankan Divorce Law**. I research using the statutes (Marriage Registration Ordinance), Roman-Dutch common law, and Supreme Court case precedents.
-                      </p>
-
-                      <div className="w-full grid grid-cols-1 gap-2 text-left">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Suggested Questions:</span>
-                        {suggestedQuestions.map((q, i) => (
-                          <button
-                            key={i}
-                            onClick={() => handleAiChatSubmit(null, q)}
-                            className="p-3 bg-white border border-slate-200 rounded hover:border-teal-600 text-xs text-slate-700 hover:bg-teal-50/20 text-left transition-all"
-                          >
-                            {q}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      {aiMessages.map((m) => (
-                        <div key={m.id} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
-                          
-                          {/* Message bubble */}
-                          <div className={`p-4 rounded-lg max-w-2xl shadow-sm border ${
-                            m.role === 'user' 
-                              ? 'bg-slate-900 border-slate-800 text-white rounded-br-none' 
-                              : 'bg-white border-slate-200 rounded-bl-none'
-                          }`}>
-                            {m.role === 'user' ? (
-                              <p className="text-sm font-sans leading-relaxed whitespace-pre-wrap">{m.content}</p>
-                            ) : (
-                              // Assistant Response - Render structured card format
-                              <div className="space-y-4 text-slate-800">
-                                <div className="flex justify-between items-center border-b border-slate-100 pb-2">
-                                  <div className="flex items-center gap-1.5 text-xs text-teal-700 font-bold uppercase tracking-wider">
-                                    <Sparkles size={14} />
-                                    AI Search Result
-                                  </div>
-                                  <button 
-                                    onClick={() => handleCopyText(m.content)}
-                                    className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors"
-                                    title="Copy Response"
-                                  >
-                                    <Copy size={14} />
-                                  </button>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4 text-xs">
-                                  <div>
-                                    <span className="font-bold text-slate-400 uppercase tracking-wider block">Relevant Legal Ground:</span>
-                                    <span className="text-slate-800 font-semibold mt-0.5 block">{m.content.ground || 'N/A'}</span>
-                                  </div>
-                                  <div>
-                                    <span className="font-bold text-slate-400 uppercase tracking-wider block">Relevant Acts:</span>
-                                    <span className="text-slate-800 font-semibold mt-0.5 block">{m.content.acts || 'N/A'}</span>
-                                  </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4 text-xs">
-                                  <div>
-                                    <span className="font-bold text-slate-400 uppercase tracking-wider block">Relevant Section(s):</span>
-                                    <span className="text-slate-800 font-semibold mt-0.5 block">{m.content.sections || 'N/A'}</span>
-                                  </div>
-                                  <div>
-                                    <span className="font-bold text-slate-400 uppercase tracking-wider block">Relevant Case Law:</span>
-                                    <span className="text-slate-800 font-semibold mt-0.5 block italic">{m.content.caseLaw || 'N/A'}</span>
-                                  </div>
-                                </div>
-
-                                <div className="text-xs bg-slate-50/50 p-3 rounded border border-slate-100">
-                                  <span className="font-bold text-slate-400 uppercase tracking-wider block mb-1">Explanation:</span>
-                                  <p className="text-slate-700 leading-relaxed font-sans">{m.content.explanation}</p>
-                                </div>
-
-
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                      {aiLoading && (
-                        <div className="flex justify-start">
-                          <div className="bg-white border border-slate-200 p-4 rounded-lg rounded-bl-none flex items-center gap-3">
-                            <RefreshCw size={16} className="text-teal-600 animate-spin" />
-                            <span className="text-xs text-slate-400 font-bold uppercase tracking-widest animate-pulse">Retrieving and composing legal research...</span>
-                          </div>
-                        </div>
-                      )}
-                      <div ref={chatEndRef} />
-                    </div>
-                  )}
-                </div>
-
-                {/* Question Input Box */}
-                <form onSubmit={handleAiChatSubmit} className="p-4 border-t border-slate-200 bg-white flex gap-3">
-                  <input
-                    type="text"
-                    required
-                    disabled={aiLoading}
-                    placeholder="Ask a question (e.g. Can I file for divorce due to malicious desertion?)"
-                    className="flex-1 courtx-input"
-                    value={userInput}
-                    onChange={(e) => setUserInput(e.target.value)}
-                  />
-                  <button
-                    type="submit"
-                    disabled={aiLoading}
-                    className="courtx-btn courtx-btn-teal flex items-center justify-center"
-                  >
-                    <Send size={18} />
-                  </button>
-                </form>
-              </div>
-
-
             </div>
           )}
 

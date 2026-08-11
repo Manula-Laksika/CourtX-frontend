@@ -5,6 +5,7 @@ import LawyerDashboard from './pages/LawyerDashboard';
 import StaffDashboard from './pages/StaffDashboard';
 import ClientDashboard from './pages/ClientDashboard';
 import ForgotPassword from './pages/ForgotPassword';
+import FloatingAIAssistant from './components/FloatingAIAssistant';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -87,17 +88,28 @@ export default function App() {
   }
 
   if (view === 'dashboard' && user) {
+    let DashboardComponent;
     switch (user.role) {
       case 'lawyer':
-        return <LawyerDashboard user={user} onLogout={handleLogout} />;
+        DashboardComponent = <LawyerDashboard user={user} onLogout={handleLogout} />;
+        break;
       case 'court_staff':
       case 'admin':
-        return <StaffDashboard user={user} onLogout={handleLogout} />;
+        DashboardComponent = <StaffDashboard user={user} onLogout={handleLogout} />;
+        break;
       case 'client':
-        return <ClientDashboard user={user} onLogout={handleLogout} />;
+        DashboardComponent = <ClientDashboard user={user} onLogout={handleLogout} />;
+        break;
       default:
         return <Login onLoginSuccess={handleLoginSuccess} onNavigateToRegister={() => setView('register')} />;
     }
+
+    return (
+      <>
+        {DashboardComponent}
+        {(user.role === 'lawyer' || user.role === 'client') && <FloatingAIAssistant />}
+      </>
+    );
   }
 
                                           //changed
