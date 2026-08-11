@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Scale, Briefcase, Calendar, Bell, ChevronRight, FileText, 
   MapPin, Clock, LogOut, CheckCircle, ShieldAlert, User,
-  MessageSquare, Plus, Trash2, Send, Sparkles, RefreshCw, Copy
+  MessageSquare, Plus, Trash2, Send, Sparkles, RefreshCw, Copy, Menu, X
 } from 'lucide-react';
 
 export default function ClientDashboard({ user, onLogout }) {
@@ -11,6 +11,7 @@ export default function ClientDashboard({ user, onLogout }) {
   const [notifications, setNotifications] = useState([]);
   const [activeCase, setActiveCase] = useState(null);
   const [caseDetails, setCaseDetails] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const [loading, setLoading] = useState(true);
 
@@ -344,48 +345,101 @@ export default function ClientDashboard({ user, onLogout }) {
   return (
     <div className="min-h-screen flex flex-col bg-[#FDFBF7] text-slate-800">
       {/* Top Header */}
-      <header className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between shadow-md">
-        <div className="flex items-center gap-3">
-          <div className="bg-teal-600 p-2 rounded-lg flex items-center justify-center">
-            <Scale size={20} className="text-white" />
+      <header className="bg-slate-900 text-white px-6 py-4 shadow-md relative">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="bg-teal-600 p-2 rounded-lg flex items-center justify-center">
+              <Scale size={20} className="text-white" />
+            </div>
+            <span className="text-lg font-extrabold tracking-widest font-heading">COURTX CLIENT</span>
           </div>
-          <span className="text-lg font-extrabold tracking-widest font-heading">COURTX CLIENT PORTAL</span>
+
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center gap-4">
+            <div className="text-right">
+              <div className="text-xs font-semibold text-slate-400 uppercase">Litigant Portal</div>
+              <div className="text-sm font-bold text-white">{user.username}</div>
+            </div>
+            <button 
+              onClick={() => {
+                setViewMode('ai_assistant');
+                setProfileSuccess('');
+                setProfileError('');
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 border border-amber-500 rounded hover:bg-amber-700 text-white font-bold text-xs shadow-md transition-colors"
+            >
+              <Sparkles size={12} />
+              AI Assistant
+            </button>
+            <button 
+              onClick={() => {
+                setViewMode(viewMode === 'dashboard' ? 'profile' : 'dashboard');
+                setProfileSuccess('');
+                setProfileError('');
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 border border-slate-700 rounded hover:bg-slate-700 text-slate-300 hover:text-white text-xs transition-colors"
+            >
+              <User size={12} />
+              {viewMode === 'dashboard' ? 'Edit Profile' : 'Back to Cases'}
+            </button>
+            <button 
+              onClick={onLogout}
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-700 rounded hover:bg-slate-800 text-slate-300 hover:text-white text-xs transition-colors"
+            >
+              <LogOut size={12} />
+              Sign Out
+            </button>
+          </div>
+
+          {/* Mobile Menu Toggle */}
+          <button 
+            className="md:hidden text-slate-300 hover:text-white focus:outline-none"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
-        <div className="flex items-center gap-4">
-        <div className="text-right hidden sm:block">
-          <div className="text-xs font-semibold text-slate-400 uppercase">Litigant Portal</div>
-          <div className="text-sm font-bold text-white">{user.username}</div>
-        </div>
-        <button 
-          onClick={() => {
-            setViewMode('ai_assistant');
-            setProfileSuccess('');
-            setProfileError('');
-          }}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 border border-amber-500 rounded hover:bg-amber-700 text-white font-bold text-xs shadow-md transition-colors"
-        >
-          <Sparkles size={12} />
-          AI Assistant
-        </button>
-        <button 
-          onClick={() => {
-            setViewMode(viewMode === 'dashboard' ? 'profile' : 'dashboard');
-            setProfileSuccess('');
-            setProfileError('');
-          }}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 border border-slate-700 rounded hover:bg-slate-700 text-slate-300 hover:text-white text-xs transition-colors"
-        >
-          <User size={12} />
-          {viewMode === 'dashboard' ? 'Edit Profile' : 'Back to Cases'}
-        </button>
-        <button 
-          onClick={onLogout}
-          className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-700 rounded hover:bg-slate-800 text-slate-300 hover:text-white text-xs transition-colors"
-        >
-          <LogOut size={12} />
-          Sign Out
-        </button>
-      </div>
+
+        {/* Mobile Dropdown Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden mt-4 pt-4 border-t border-slate-800 flex flex-col gap-3 pb-2 animate-fade-in">
+            <div className="mb-2 text-center">
+              <div className="text-xs font-semibold text-slate-400 uppercase">Litigant Portal</div>
+              <div className="text-sm font-bold text-white">{user.username}</div>
+            </div>
+            <button 
+              onClick={() => {
+                setViewMode('ai_assistant');
+                setProfileSuccess('');
+                setProfileError('');
+                setIsMobileMenuOpen(false);
+              }}
+              className="w-full flex items-center justify-center gap-1.5 px-3 py-2.5 bg-amber-600 border border-amber-500 rounded hover:bg-amber-700 text-white font-bold text-sm shadow-md transition-colors"
+            >
+              <Sparkles size={16} />
+              AI Assistant
+            </button>
+            <button 
+              onClick={() => {
+                setViewMode(viewMode === 'dashboard' ? 'profile' : 'dashboard');
+                setProfileSuccess('');
+                setProfileError('');
+                setIsMobileMenuOpen(false);
+              }}
+              className="w-full flex items-center justify-center gap-1.5 px-3 py-2.5 bg-slate-800 border border-slate-700 rounded hover:bg-slate-700 text-slate-300 hover:text-white text-sm transition-colors"
+            >
+              <User size={16} />
+              {viewMode === 'dashboard' ? 'Edit Profile' : 'Back to Cases'}
+            </button>
+            <button 
+              onClick={onLogout}
+              className="w-full flex items-center justify-center gap-1.5 px-3 py-2.5 border border-slate-700 rounded hover:bg-slate-800 text-slate-300 hover:text-white text-sm transition-colors"
+            >
+              <LogOut size={16} />
+              Sign Out
+            </button>
+          </div>
+        )}
       </header>
 
       {/* Main content grid */}

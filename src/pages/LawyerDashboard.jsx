@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Scale, BookOpen, Briefcase, Calendar as CalendarIcon, MessageSquare, 
   Plus, Upload, Copy, Trash2, Send, FileText, ChevronRight, LogOut, 
-  Search, ShieldAlert, Sparkles, User, UserCheck, RefreshCw, Layers
+  Search, ShieldAlert, Sparkles, User, UserCheck, RefreshCw, Layers, Menu
 } from 'lucide-react';
 import Modal from '../components/Modal';
 import ReactMarkdown from 'react-markdown';
 
 export default function LawyerDashboard({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('overview'); // overview, file_case, my_cases, calendar, ai_assistant
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [cases, setCases] = useState([]);
   const [hearings, setHearings] = useState([]);
   const [notifications, setNotifications] = useState([]);
@@ -514,56 +515,69 @@ export default function LawyerDashboard({ user, onLogout }) {
 
   return (
     <div className="min-h-screen flex bg-[#FDFBF7] text-slate-800">
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 z-40 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-white shrink-0 hidden md:flex flex-col justify-between py-6 px-4">
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col justify-between py-6 px-4 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div>
-          {/* Logo */}
-          <div className="flex items-center gap-3 px-2 mb-8">
-            <div className="bg-teal-600 p-2 rounded-lg flex items-center justify-center">
-              <Scale size={20} className="text-white" />
+          {/* Logo & Close Button */}
+          <div className="flex items-center justify-between mb-8 px-2">
+            <div className="flex items-center gap-3">
+              <div className="bg-teal-600 p-2 rounded-lg flex items-center justify-center">
+                <Scale size={20} className="text-white" />
+              </div>
+              <span className="text-lg font-extrabold tracking-widest font-heading">COURTX</span>
             </div>
-            <span className="text-lg font-extrabold tracking-widest font-heading">COURTX</span>
+            <button className="md:hidden text-slate-400 hover:text-white" onClick={() => setIsMobileMenuOpen(false)}>
+              ✕
+            </button>
           </div>
 
           {/* Navigation Links */}
           <nav className="space-y-1">
             <button
-              onClick={() => setActiveTab('overview')}
+              onClick={() => { setActiveTab('overview'); setIsMobileMenuOpen(false); }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded transition-all text-left text-sm font-medium ${activeTab === 'overview' ? 'bg-teal-700 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
             >
               <Layers size={18} />
               Overview
             </button>
             <button
-              onClick={() => setActiveTab('file_case')}
+              onClick={() => { setActiveTab('file_case'); setIsMobileMenuOpen(false); }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded transition-all text-left text-sm font-medium ${activeTab === 'file_case' ? 'bg-teal-700 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
             >
               <Plus size={18} />
               File New Case
             </button>
             <button
-              onClick={() => setActiveTab('my_cases')}
+              onClick={() => { setActiveTab('my_cases'); setIsMobileMenuOpen(false); }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded transition-all text-left text-sm font-medium ${activeTab === 'my_cases' ? 'bg-teal-700 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
             >
               <Briefcase size={18} />
               My Cases
             </button>
             <button
-              onClick={() => setActiveTab('calendar')}
+              onClick={() => { setActiveTab('calendar'); setIsMobileMenuOpen(false); }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded transition-all text-left text-sm font-medium ${activeTab === 'calendar' ? 'bg-teal-700 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
             >
               <CalendarIcon size={18} />
               Hearing Calendar
             </button>
             <button
-              onClick={() => setActiveTab('ai_assistant')}
+              onClick={() => { setActiveTab('ai_assistant'); setIsMobileMenuOpen(false); }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded transition-all text-left text-sm font-medium ${activeTab === 'ai_assistant' ? 'bg-teal-700 text-white font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
             >
               <MessageSquare size={18} className="text-teal-400" />
               AI Legal Assistant
             </button>
             <button
-              onClick={() => setActiveTab('profile_settings')}
+              onClick={() => { setActiveTab('profile_settings'); setIsMobileMenuOpen(false); }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded transition-all text-left text-sm font-medium ${activeTab === 'profile_settings' ? 'bg-teal-700 text-white font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
             >
               <User size={18} className="text-teal-400" />
@@ -594,12 +608,20 @@ export default function LawyerDashboard({ user, onLogout }) {
       </aside>
 
       {/* Main content body */}
-      <main className="flex-1 flex flex-col overflow-y-auto">
+      <main className="flex-1 flex flex-col overflow-y-auto w-full">
         {/* Top Header */}
         <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm shrink-0">
-          <h2 className="text-xl font-bold text-slate-900 uppercase tracking-wide font-heading">
-            {activeTab.replaceAll('_', ' ')}
-          </h2>
+          <div className="flex items-center gap-4">
+            <button 
+              className="md:hidden text-slate-500 hover:text-slate-800 focus:outline-none"
+              onClick={() => setIsMobileMenuOpen(true)}
+            >
+              <Menu size={24} />
+            </button>
+            <h2 className="text-xl font-bold text-slate-900 uppercase tracking-wide font-heading">
+              {activeTab.replaceAll('_', ' ')}
+            </h2>
+          </div>
           <div className="flex items-center gap-4">
             <div className="bg-teal-50 border border-teal-200 px-3 py-1 rounded-full flex items-center gap-1.5 text-xs text-teal-700 font-semibold">
               <UserCheck size={14} />
