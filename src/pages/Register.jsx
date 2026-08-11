@@ -68,9 +68,16 @@ export default function Register({ onNavigateToLogin }) {
     }
 
     // 5. Phone Number validation (Sri Lanka format)
-    const slPhoneRegex = /^(?:\+94|0)?7[0-9]{8}$/;
-    if (trimmedPhone && !slPhoneRegex.test(trimmedPhone)) {
-      newErrors.phone = 'Please enter a valid Sri Lankan mobile number (e.g. 0771234567).';
+    const slPhoneRegex = /^(?:\+94|0)7[0-9]{8}$/;
+    if(!trimmedPhone){
+      newErrors.phone = 'Phone number is required.';
+      }else if (!slPhoneRegex.test(trimmedPhone)){
+        newErrors.phone = 
+          'Please enter a valid Sri Lankan mobile number (e.g. 0721234567).';
+    }
+    if(Object.keys(newErrors).length > 0){
+      setFieldErrors(newErrors);
+      return;
     }
 
     // 6. Password strength validation
