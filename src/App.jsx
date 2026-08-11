@@ -4,6 +4,7 @@ import Register from './pages/Register';
 import LawyerDashboard from './pages/LawyerDashboard';
 import StaffDashboard from './pages/StaffDashboard';
 import ClientDashboard from './pages/ClientDashboard';
+import ForgotPassword from './pages/ForgotPassword';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -44,6 +45,19 @@ export default function App() {
     );
   }
 
+                                        //changed
+
+  if (view === 'login') {
+    return (
+      <Login 
+        onLoginSuccess={handleLoginSuccess} 
+        onNavigateToRegister={() => setView('register')} 
+        onNavigateToForgotPassword={() => setView('forgotPassword')}  //changed
+      />
+    );
+  }
+  
+
   if (view === 'login') {
     return (
       <Login 
@@ -52,6 +66,17 @@ export default function App() {
       />
     );
   }
+
+  
+                            //changed
+
+  if (view === 'forgotPassword') {
+  return (
+    <ForgotPassword
+      onNavigateToLogin={() => setView('login')}
+    />
+  );
+}
 
   if (view === 'register') {
     return (
@@ -75,5 +100,7 @@ export default function App() {
     }
   }
 
-  return <Login onLoginSuccess={handleLoginSuccess} onNavigateToRegister={() => setView('register')} />;
+                                          //changed
+
+  return <Login onLoginSuccess={handleLoginSuccess} onNavigateToRegister={() => setView('register')} onNavigateToForgotPassword={() => setView('forgotPassword')} />;
 }
