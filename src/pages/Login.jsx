@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, Scale, ShieldAlert } from 'lucide-react';
 
-const Login = ({ onLoginSuccess, onNavigateToRegister }) => {
+                           {/* changed */}
+
+const Login = ({ onLoginSuccess, onNavigateToRegister, onNavigateToForgotPassword }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("lawyer");
@@ -9,9 +11,11 @@ const Login = ({ onLoginSuccess, onNavigateToRegister }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
+  
 
   // Auto-fill for demo purposes when role changes
   React.useEffect(() => {
+    
     const demoAccounts = {
       'lawyer': { email: 'lawyer@courtx.lk', password: 'Lawyer@123' },
       'client': { email: 'client@courtx.lk', password: 'Client@123' },
@@ -185,12 +189,20 @@ const Login = ({ onLoginSuccess, onNavigateToRegister }) => {
               )}
             </div>
 
+
+                                    {/* changed */}
             <div>
               <div className="flex justify-between items-center mb-1">
                 <label className="courtx-label" htmlFor="password">Password</label>
-                <a href="#forgot" className="text-xs text-amber-600 hover:text-amber-700 font-semibold uppercase tracking-wider">
-                  Forgot Password?
-                </a>
+                <button
+                  type="button"
+                   onClick={onNavigateToForgotPassword}
+                     className="text-xs text-amber-600 hover:text-amber-700 font-semibold uppercase tracking-wider"
+                  >
+                    Forgot Password?
+                </button>
+
+                        
               </div>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
