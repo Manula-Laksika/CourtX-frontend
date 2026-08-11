@@ -59,29 +59,16 @@ const Login = ({ onLoginSuccess, onNavigateToRegister, onNavigateToForgotPasswor
     setLoading(true);
 
     try {
-      // FRONTEND DEMO OVERRIDE: Mock backend response for frontend-only deployment
-      await new Promise(resolve => setTimeout(resolve, 600)); // Simulate network delay
+      const response = await fetch('http://127.0.0.1:5001/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: trimmedEmail, password, role })
+      });
       
-      const mockUsers = {
-        'lawyer': { id: 1, username: 'Kamal Perera', role: 'lawyer', email: 'lawyer@courtx.lk' },
-        'client': { id: 2, username: 'Nimal Silva', role: 'client', email: 'client@courtx.lk' },
-        'court_staff': { id: 3, username: 'Sunil Registrar', role: 'court_staff', email: 'staff@courtx.lk' },
-        'admin': { id: 4, username: 'Super Admin', role: 'admin', email: 'admin@courtx.lk' }
-      };
+      const data = await response.json();
 
-      const defaultPasswords = {
-        'lawyer': 'Lawyer@123',
-        'client': 'Client@123',
-        'court_staff': 'Staff@123',
-        'admin': 'Admin@123'
-      };
-
-      let data;
-      // Allow login if they use the correct default password for the role
-      if (password === defaultPasswords[role] && trimmedEmail === mockUsers[role].email) {
-        data = { token: 'demo-token-' + Date.now(), user: mockUsers[role] };
-      } else {
-        throw new Error('Invalid demo credentials. Please use the Demo Accounts below.');
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed');
       }
 
       // Success
