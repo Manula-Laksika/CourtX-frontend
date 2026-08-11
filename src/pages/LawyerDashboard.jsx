@@ -5,6 +5,7 @@ import {
   Search, ShieldAlert, Sparkles, User, UserCheck, RefreshCw, Layers, Menu
 } from 'lucide-react';
 import Modal from '../components/Modal';
+import NotificationCenter from '../components/NotificationCenter';
 import ReactMarkdown from 'react-markdown';
 
 export default function LawyerDashboard({ user, onLogout }) {
@@ -196,7 +197,12 @@ export default function LawyerDashboard({ user, onLogout }) {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('courtx_token')}` }
       });
       const data = await response.json();
-      if (response.ok) setNotifications(data);
+      if (response.ok) {
+        const nextNotifications = Array.isArray(data)
+          ? data
+          : (Array.isArray(data?.notifications) ? data.notifications : []);
+        setNotifications(nextNotifications);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -284,6 +290,8 @@ export default function LawyerDashboard({ user, onLogout }) {
   };
 
   const handleCaseSelect = async (c) => {
+    if (!c || c.id == null) return;
+
     setSelectedCase(c);
     try {
       const response = await fetch(`http://127.0.0.1:5001/api/cases/${c.id}`, {
@@ -296,6 +304,21 @@ export default function LawyerDashboard({ user, onLogout }) {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  // Open a real case object from a notification instead of storing only the case ID.
+  // The case details modal expects selectedCase to contain the complete case record.
+  const handleNotificationCaseSelect = async (caseId) => {
+    if (caseId == null) return;
+
+    const targetCase = cases.find(c => String(c.id) === String(caseId));
+    if (!targetCase) {
+      console.warn(`Case ${caseId} referenced by notification was not found in the loaded cases.`);
+      return;
+    }
+
+    setActiveTab('my_cases');
+    await handleCaseSelect(targetCase);
   };
 
   const handleFileChange = (e) => {
@@ -623,6 +646,10 @@ export default function LawyerDashboard({ user, onLogout }) {
             </h2>
           </div>
           <div className="flex items-center gap-4">
+            <NotificationCenter
+              user={user}
+              onSelectCase={handleNotificationCaseSelect}
+            />
             <div className="bg-teal-50 border border-teal-200 px-3 py-1 rounded-full flex items-center gap-1.5 text-xs text-teal-700 font-semibold">
               <UserCheck size={14} />
               <span>BAR Active: {user.barNumber || 'Approved'}</span>
@@ -688,7 +715,7 @@ export default function LawyerDashboard({ user, onLogout }) {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="courtx-card bg-white p-6">
                   <h3 className="text-lg font-bold text-slate-800 font-heading mb-4">Latest System Updates</h3>
-                  {notifications.length === 0 ? (
+                  {(!Array.isArray(notifications) || notifications.length === 0) ? (
                     <p className="text-slate-400 text-sm">No new updates or alerts.</p>
                   ) : (
                     <div className="space-y-4">
@@ -696,7 +723,7 @@ export default function LawyerDashboard({ user, onLogout }) {
                         <div key={n.id} className="p-3 bg-slate-50 border border-slate-100 rounded text-sm cursor-pointer hover:bg-slate-100 transition-colors">
                           <div className="font-bold text-slate-700 flex justify-between">
                             <span>{n.title}</span>
-                            <span className="text-[10px] text-slate-400 font-normal">{n.created_at.slice(0, 10)}</span>
+                            <span className="text-[10px] text-slate-400 font-normal">{n.created_at ? n.created_at.slice(0, 10) : ''}</span>
                           </div>
                           <div className="text-slate-500 mt-1 leading-normal text-xs">{n.message}</div>
                         </div>
