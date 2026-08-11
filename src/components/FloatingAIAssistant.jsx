@@ -212,7 +212,7 @@ export default function FloatingAIAssistant() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-4 md:right-6 w-[95vw] md:w-[700px] h-[75vh] md:h-[600px] bg-white border border-slate-200 rounded-xl shadow-2xl z-[101] flex flex-col md:flex-row overflow-hidden animate-fade-in">
+        <div className="fixed top-4 bottom-24 left-4 right-4 md:top-auto md:left-auto md:bottom-24 md:right-6 md:w-[700px] md:h-[600px] bg-white border border-slate-200 rounded-xl shadow-2xl z-[101] flex flex-col md:flex-row overflow-hidden animate-fade-in">
           
           {/* Left Chat History Pane (Hidden on very small screens, visible on md+) */}
           <div className="hidden md:flex w-64 border-r border-slate-200 bg-slate-50 flex-col justify-between shrink-0">
