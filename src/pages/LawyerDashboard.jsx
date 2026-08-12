@@ -197,7 +197,7 @@ export default function LawyerDashboard({ user, onLogout }) {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('courtx_token')}` }
       });
       const data = await response.json();
-      if (response.ok) setNotifications(data);
+      if (response.ok) setNotifications(data.notifications || []);
     } catch (err) {
       console.error(err);
     }
